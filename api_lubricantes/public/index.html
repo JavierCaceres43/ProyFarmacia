@@ -98,6 +98,7 @@ let buscarVentaT=null;
 function buscarVentaLive(v){clearTimeout(buscarVentaT);buscarVentaT=setTimeout(()=>buscarVenta(v,true),300);}
 async function buscarVenta(v,live){ventaQuery=v||'';try{ventasDb=await api('/ventas'+(ventaQuery?'?q='+encodeURIComponent(ventaQuery):''));apiOk=true;}catch(e){apiOk=false;}draw();if(live){const el=document.getElementById('q-ventas');if(el){el.focus();try{el.setSelectionRange(el.value.length,el.value.length)}catch(e){}}}}
 async function recargarAtrs(){try{const r=await Promise.all([api('/atributos/laboratorio'),api('/atributos/tipo'),api('/atributos/presentacion')]);labDb=r[0];tipoDb=r[1];presDb=r[2];}catch(e){}draw();}
+
 async function doLogin(){
   try{
     ses=await api('/usuarios/login',{method:'POST',body:JSON.stringify({nombre:$('#lg-nombre').value.trim(),password:$('#lg-pass').value})});
@@ -194,7 +195,7 @@ proveedor:[["id","PK"],["nombre",""],["telefono, correo, direccion",""],["avatar
 laboratorio:[["id","PK"],["nombre",""],["logo",""]],tipo:[["id","PK"],["nombre","Comercial, Generico…"]],presentacion:[["id","PK"],["nombre","TABLETA, INYECTABLE…"]],
 venta:[["codigo","PK"],["fecha",""],["cliente, dni_cliente",""],["total (con IGV 18%)",""],["usuario_dni","FK vendedor"]],
 detalle_venta:[["venta_codigo","FK"],["lote_codigo","FK"],["cantidad",""],["precio",""],["subtotal",""]]};
-const menu=[["login","Inicio de sesión"],["catalogo","Catálogo"],["compra","Solicitud de compra"],["Usuario"],["datos","Datos personales"],["usuarios","Gestión usuario"],["Ventas"],["ventas","Listar ventas"],["Almacén"],["producto","Gestión producto"],["atributo","Gestión atributo"],["lote","Gestión lote"],["Compras"],["proveedor","Gestión proveedor"],["Análisis"],["bd","Modelo de datos"]];
+const menu=[["login","Inicio de sesión"],["catalogo","Catálogo"],["compra","Solicitud de compra"],["Usuario"],["datos","Datos personales"],["usuarios","Gestión usuario"],["Ventas"],["ventas","Listar ventas"],["Almacén"],["producto","Gestión producto"],["atributo","Gestión atributo"],["lote","Gestión lote"],["Compras"],["proveedor","Gestión proveedor"]];
 let cur=ses?"catalogo":"login",tab="Laboratorio";
 const money=n=>Number(n??0).toFixed(2);
 function op(t,b){$("#mt").textContent=t;$("#mbody").innerHTML=b;const s=$("#mSave");if(s)s.onclick=cl;$("#modal").classList.add("on")}
@@ -400,7 +401,7 @@ async function guardarAvatarProd(id){
     const r=await fetch('/api/productos/'+id+'/avatar',{method:'POST',body:fd});
     let j=null;try{j=await r.json()}catch{}
     if(!r.ok||!j||!j.ok)throw new Error((j&&j.message)||('Error '+r.status));
-    cl();await buscarProd(prodQuery);
+    cl();await buscarProd(prodQuery);await buscarLote(loteQuery);
   }catch(e){alert(e.message);}
 }
 function avatarUser(){
@@ -496,7 +497,7 @@ producto:()=>{
 },
 lote:()=>{
   const cards=apiOk
-    ?lotesDb.map(l=>{const r=relVence(l.fecha_vencimiento);return`<div class="card ${r.cls}"><div><small>Código ${l.codigo}</small> · Stock <b>${l.stock}</b><br><b>${esc(l.producto)}</b><br><small>Proveedor: ${esc(l.proveedor)}<br>Vence: ${esc(r.t)}</small>${btns(["g","✎",`editarLote(${l.codigo})`,"Editar lote"],["r","✕",`eliminarLote(${l.codigo})`,"Eliminar lote"])}</div><div class="av"></div></div>`}).join('')
+    ?lotesDb.map(l=>{const r=relVence(l.fecha_vencimiento);return`<div class="card ${r.cls}"><div><small>Código ${l.codigo}</small> · Stock <b>${l.stock}</b><br><b>${esc(l.producto)}</b><br><small>Proveedor: ${esc(l.proveedor)}<br>Vence: ${esc(r.t)}</small>${btns(["g","✎",`editarLote(${l.codigo})`,"Editar lote"],["r","✕",`eliminarLote(${l.codigo})`,"Eliminar lote"])}</div>${avatarCellP(l.producto_avatar)}</div>`}).join('')
     :lotes.map(l=>`<div class="card ${l[5]}"><div><small>Código ${l[0]}</small> · Stock <b>${l[2]}</b><br><b>${l[1]}</b><br><small>Proveedor: ${l[3]}<br>Vence: ${l[4]}</small>${btns(["g","✎","op('Editar lote',f('Stock','${l[2]}'))","Editar lote"],["r","✕","","Eliminar lote"])}</div><div class="av"></div></div>`).join('');
   return `<h1>Gestión lote</h1>`
     +(apiOk?'':'<div class="box pad">Sin conexión al API: mostrando datos de ejemplo.</div>')

@@ -9,6 +9,7 @@ const SELECT_BASE = `
     l.stock,
     l.fecha_vencimiento,
     p.nombre AS producto,
+    p.avatar AS producto_avatar,
     pr.nombre AS proveedor,
     l.estado
   FROM dbo.lote l
