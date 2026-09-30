@@ -48,7 +48,7 @@ export async function crearUsuario(body: Record<string, unknown>) {
     .input("dni", sql.NVarChar(20), dni)
     .input("nombre", sql.NVarChar(150), nombre)
     .input("edad", sql.Int, body.edad !== undefined && body.edad !== null && body.edad !== "" ? Number(body.edad) : null)
-    .input("tipo_usuario", sql.NVarChar(20), body.tipo_usuario ? String(body.tipo_usuario) : "Técnico")
+    .input("tipo_usuario", sql.NVarChar(20), body.tipo_usuario ? String(body.tipo_usuario) : "Encargado")
     .input("telefono", sql.NVarChar(30), body.telefono ? String(body.telefono) : null)
     .input("residencia", sql.NVarChar(200), body.residencia ? String(body.residencia) : null)
     .input("correo", sql.NVarChar(150), body.correo ? String(body.correo) : null)
@@ -99,7 +99,7 @@ export async function actualizarUsuario(dni: string, body: Record<string, unknow
   return obtenerUsuarioPorDni(dni);
 }
 
-const ORDEN_TIPO = ["Técnico", "Administrador", "Root"];
+const ORDEN_TIPO = ["Encargado", "Administrador", "Root"];
 
 async function esUnicoRoot(dni: string) {
   const db = await getPool();

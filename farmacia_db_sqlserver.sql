@@ -140,7 +140,7 @@ CREATE TABLE dbo.usuario (
     dni NVARCHAR(20) NOT NULL,
     nombre NVARCHAR(150) NOT NULL,
     edad INT NULL,
-    tipo_usuario NVARCHAR(20) NOT NULL DEFAULT N'Técnico',
+    tipo_usuario NVARCHAR(20) NOT NULL DEFAULT N'Encargado',
     telefono NVARCHAR(30) NULL,
     residencia NVARCHAR(200) NULL,
     correo NVARCHAR(150) NULL,
@@ -153,7 +153,7 @@ CREATE TABLE dbo.usuario (
     CONSTRAINT pk_usuario PRIMARY KEY (dni),
     CONSTRAINT uq_usuario_nombre UNIQUE (nombre),
     CONSTRAINT ck_usuario_tipo
-        CHECK (tipo_usuario IN (N'Root', N'Administrador', N'Técnico')),
+        CHECK (tipo_usuario IN (N'Root', N'Administrador', N'Encargado')),
     CONSTRAINT ck_usuario_nombre CHECK (LEN(LTRIM(RTRIM(nombre))) > 0),
     CONSTRAINT ck_usuario_edad CHECK (edad IS NULL OR edad >= 0)
 );
@@ -257,8 +257,8 @@ INSERT INTO dbo.usuario(dni, nombre, edad, tipo_usuario, residencia, password) V
 (N'admin', N'admin', NULL, N'Root', NULL, N'admin'),
 (N'12345', N'Juan diego Polo Cosme', 26, N'Administrador', N'Trujillo/Libertad/Perú', N'12345'),
 (N'67890', N'fernando salazar chiroque', 20, N'Administrador', N'santiago de chile', N'67890'),
-(N'22232', N'juan eder polo cosme', 29, N'Técnico', NULL, N'22232'),
-(N'20412154', N'312321 asdas', 0, N'Técnico', NULL, N'20412154');
+(N'22232', N'juan eder polo cosme', 29, N'Encargado', NULL, N'22232'),
+(N'20412154', N'312321 asdas', 0, N'Encargado', NULL, N'20412154');
 GO
 
 -- Lotes de las capturas (vencimientos relativos a hoy para demo).
