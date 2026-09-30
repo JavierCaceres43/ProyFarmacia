@@ -1,0 +1,15 @@
+import { Router } from "express";
+import productoRoutes from "./producto.routes";
+import loteRoutes from "./lote.routes";
+import proveedorRoutes from "./proveedor.routes";
+import usuarioRoutes from "./usuario.routes";
+import ventaRoutes from "./venta.routes";
+import atributoRoutes from "./atributo.routes";
+const router = Router();
+router.use("/productos", productoRoutes);
+router.use("/lotes", loteRoutes);
+router.use("/proveedores", proveedorRoutes);
+router.use("/usuarios", usuarioRoutes);
+router.use("/ventas", ventaRoutes);
+router.use("/atributos", atributoRoutes);
+export default router;

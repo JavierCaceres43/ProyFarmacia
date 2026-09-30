@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><title>Sistema Farmacia – interfaz reconstruida</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>
+:root{--bg:#f4f6f9;--card:#fff;--tx:#212529;--mut:#6c757d;--side:#343a40;--sidetx:#c2c7d0;--g:#28a745;--gl:#c3e6cb;--b:#007bff;--r:#dc3545;--y:#ffc107;--c:#17a2b8;--bd:#dee2e6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1f23;--card:#2a2e33;--tx:#e6e8ea;--mut:#9aa3ab;--bd:#454b52;--gl:#2d5a3a}}
+:root[data-theme="dark"]{--bg:#1c1f23;--card:#2a2e33;--tx:#e6e8ea;--mut:#9aa3ab;--bd:#454b52;--gl:#2d5a3a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 "Source Sans Pro",system-ui,sans-serif}
+#app{display:flex;min-height:100vh}
+nav{width:220px;background:var(--side);color:var(--sidetx);flex:none;padding:12px 0}
+nav h3{margin:0;padding:6px 16px 14px;color:#fff;font-size:18px}
+nav small{display:block;padding:10px 16px 4px;color:#8a919a}
+nav a{display:block;padding:7px 16px;cursor:pointer;color:var(--sidetx)}nav a:hover,nav a.on{background:#494e53;color:#fff}
+main{flex:1;min-width:0;padding:16px 20px}
+h1{font-size:22px;margin:0 0 14px;font-weight:500}
+.bar{background:var(--g);color:#fff;padding:8px 12px;border-radius:3px 3px 0 0;font-weight:600}
+.box{background:var(--card);border:1px solid var(--bd);border-radius:3px;margin-bottom:16px}.pad{padding:12px}
+input,select,textarea{width:100%;padding:6px 10px;border:1px solid var(--bd);border-radius:3px;background:var(--card);color:var(--tx);font:inherit}
+label{display:block;font-weight:700;margin:10px 0 3px}
+.btn{border:0;border-radius:3px;padding:6px 12px;color:#fff;cursor:pointer;background:var(--b);font:inherit}.btn.g{background:var(--g)}.btn.r{background:var(--r)}.btn.c{background:var(--c)}.btn.k{background:#6c757d}.btn.y{background:var(--y);color:#212529}
+@keyframes alumbrar{0%{filter:brightness(1.7);box-shadow:0 0 12px #ffd54d}100%{filter:brightness(1);box-shadow:none}}
+.flash{animation:alumbrar .35s}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+.kpi{color:#fff;padding:14px;border-radius:3px}.kpi b{font-size:28px;display:block}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:3px;padding:12px;display:flex;gap:10px;justify-content:space-between}
+.card.ok{background:#fff3cd;color:#212529}.card.warn{background:#f8d7da;color:#212529}.card.good{background:#d4edda;color:#212529}
+.pill{display:inline-block;padding:1px 7px;border-radius:3px;color:#fff;font-size:12px;font-weight:700}
+.av{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--c),var(--g));flex:none}
+.acts{display:flex;gap:4px;margin-top:8px}.acts .btn{padding:3px 8px}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse}th{background:var(--gl);text-align:left;color:#212529}th,td{padding:7px 10px;border-bottom:1px solid var(--bd);white-space:nowrap}.mb td,.mb th{white-space:normal}
+.tabs{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap}.tabs .btn{background:var(--card);color:var(--b);border:1px solid var(--bd)}.tabs .btn.on{background:var(--b);color:#fff}
+.modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:9;padding:12px}.modal.on{display:flex}
+.mb{background:var(--card);width:min(680px,100%);max-height:90vh;overflow:auto;border-radius:4px}.mb .bar{display:flex;justify-content:space-between}.mb .pad:last-child{text-align:right}
+.r2{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.login{display:grid;place-items:center;min-height:70vh;text-align:center}.login form{width:260px}
+.er{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(270px,1fr))}.er .box{margin:0}.er td{padding:4px 10px;font-size:13px}
+.pk{color:#e0a800;font-weight:700}.fk{color:var(--c);font-weight:700}
+@media(max-width:760px){#app{flex-direction:column}nav{width:100%;display:flex;flex-wrap:wrap;padding:6px}nav small{display:none}nav h3{width:100%}}
+#print-area{display:none}
+@media print{#app,.modal,.toast,.cartfab,.cartdrop{display:none!important}#print-area{display:block!important;color:#000}}
+.cartfab{position:fixed;right:18px;bottom:18px;background:var(--b);color:#fff;border:0;border-radius:50%;width:52px;height:52px;font-size:24px;cursor:pointer;z-index:8;box-shadow:0 2px 8px #0005}
+.cartfab .n{position:absolute;top:-4px;right:-4px;background:var(--r);color:#fff;font-size:12px;font-weight:700;border-radius:50%;min-width:20px;height:20px;display:grid;place-items:center}
+.cartdrop{position:fixed;right:18px;bottom:78px;width:min(560px,calc(100vw - 36px));max-height:60vh;overflow:auto;background:var(--card);border:1px solid var(--bd);border-radius:4px;z-index:8;display:none;box-shadow:0 4px 16px #0004;cursor:move}
+.cartdrop.on{display:block}.cartdrop .full{width:100%;margin-top:6px;display:block}
+</style></head><body>
+<div id="app"><nav id="nav"></nav><main id="main"></main></div>
+<button class="cartfab" id="cartfab" title="Ver carrito" onclick="toggleCart()">🛒<span class="n" id="cartn">0</span></button><div class="cartdrop" id="cartdrop" title="Arrastra para mover" onmousedown="dragCart(event)"></div>
+<div id="print-area"></div>
+<div class="modal" id="modal"><div class="mb"><div class="bar"><span id="mt"></span><span style="cursor:pointer" title="Cerrar" onclick="cl()">×</span></div><div class="pad" id="mbody"></div><div class="pad"><button class="btn k" title="Cerrar sin guardar" onclick="cl()">Cerrar</button> <button class="btn" id="mSave" title="Guardar cambios" onclick="cl()">Guardar</button></div></div></div>
+<script>
+const $=s=>document.querySelector(s);
+const API='/api';
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function api(ruta,opt){
+  const r=await fetch(API+ruta,{headers:{'Content-Type':'application/json'},...opt});
+  let j=null;try{j=await r.json()}catch{}
+  if(!r.ok||!j||!j.ok)throw new Error((j&&j.message)||('Error '+r.status));
+  return j.data;
+}
+let prodsDb=[],lotesDb=[],provsDb=[],usersDb=[],ventasDb=[],resumenDb=null;
+let labDb=[],tipoDb=[],presDb=[],cart=[],ses=null,apiOk=false;
+let prodQuery='',catQuery='',loteQuery='',provQuery='',userQuery='',ventaQuery='';
+let riesgoAbierto=true;
+function toggleRiesgo(){riesgoAbierto=!riesgoAbierto;draw();}
+let edicionActiva=false;
+function toggleEdicion(){edicionActiva=!edicionActiva;draw();}
+try{ses=JSON.parse(sessionStorage.getItem('ses')||'null')}catch(e){ses=null}
+function fmtFecha(f){try{return new Date(f).toLocaleString('sv').slice(0,19)}catch(e){return String(f??'')}}
+function relVence(f){
+  const hoy=new Date();hoy.setHours(0,0,0,0);
+  const v=new Date(String(f).slice(0,10)+'T00:00:00');
+  const d=Math.round((v-hoy)/86400000);
+  if(d<0)return{t:d+' días',cls:'warn'};
+  if(d===0)return{t:'hoy',cls:'ok'};
+  if(d===1)return{t:'1 día',cls:'ok'};
+  if(d<30)return{t:d+' días',cls:'ok'};
+  const m=Math.floor(d/30);
+  const t=m+(m===1?' mes ':' meses ')+(d%30)+' días';
+  return{t,cls:d<150?'ok':'good'};
+}
+async function cargarDatos(){
+  try{
+    const r=await Promise.all([api('/productos'),api('/lotes'),api('/proveedores'),api('/usuarios'),api('/ventas'),api('/atributos/laboratorio'),api('/atributos/tipo'),api('/atributos/presentacion')]);
+    prodsDb=r[0];lotesDb=r[1];provsDb=r[2];usersDb=r[3];ventasDb=r[4];labDb=r[5];tipoDb=r[6];presDb=r[7];
+    try{resumenDb=await api('/ventas/resumen'+(ses&&ses.dni?'?dni='+encodeURIComponent(ses.dni):''));}catch(e){resumenDb=null;}
+    apiOk=true;
+  }catch(e){apiOk=false;}
+}
+async function buscarProd(v){prodQuery=v||'';try{prodsDb=await api('/productos'+(prodQuery?'?q='+encodeURIComponent(prodQuery):''));apiOk=true;}catch(e){apiOk=false;}draw();}
+let buscarCatT=null;
+function buscarCatLive(v){clearTimeout(buscarCatT);buscarCatT=setTimeout(()=>buscarCat(v,true),300);}
+async function buscarCat(v,live){catQuery=v||'';try{prodsDb=await api('/productos'+(catQuery?'?q='+encodeURIComponent(catQuery):''));apiOk=true;}catch(e){apiOk=false;}draw();if(live){const el=document.getElementById('q-cat');if(el){el.focus();try{el.setSelectionRange(el.value.length,el.value.length)}catch(e){}}}}
+async function buscarLote(v){loteQuery=v||'';try{lotesDb=await api('/lotes'+(loteQuery?'?q='+encodeURIComponent(loteQuery):''));apiOk=true;}catch(e){apiOk=false;}draw();}
+async function buscarProv(v){provQuery=v||'';try{provsDb=await api('/proveedores'+(provQuery?'?q='+encodeURIComponent(provQuery):''));apiOk=true;}catch(e){apiOk=false;}draw();}
+async function buscarUser(v){userQuery=v||'';try{usersDb=await api('/usuarios'+(userQuery?'?q='+encodeURIComponent(userQuery):''));apiOk=true;}catch(e){apiOk=false;}draw();}
+let buscarVentaT=null;
+function buscarVentaLive(v){clearTimeout(buscarVentaT);buscarVentaT=setTimeout(()=>buscarVenta(v,true),300);}
+async function buscarVenta(v,live){ventaQuery=v||'';try{ventasDb=await api('/ventas'+(ventaQuery?'?q='+encodeURIComponent(ventaQuery):''));apiOk=true;}catch(e){apiOk=false;}draw();if(live){const el=document.getElementById('q-ventas');if(el){el.focus();try{el.setSelectionRange(el.value.length,el.value.length)}catch(e){}}}}
+async function recargarAtrs(){try{const r=await Promise.all([api('/atributos/laboratorio'),api('/atributos/tipo'),api('/atributos/presentacion')]);labDb=r[0];tipoDb=r[1];presDb=r[2];}catch(e){}draw();}
+async function doLogin(){
+  try{
+    ses=await api('/usuarios/login',{method:'POST',body:JSON.stringify({nombre:$('#lg-nombre').value.trim(),password:$('#lg-pass').value})});
+    sessionStorage.setItem('ses',JSON.stringify(ses));
+    try{resumenDb=await api('/ventas/resumen?dni='+encodeURIComponent(ses.dni));}catch(e){}
+    go('catalogo');
+  }catch(e){alert(e.message);}
+}
+function addCart(id){
+  const p=prodsDb.find(x=>x.id_producto===id);if(!p)return;
+  if(apiOk&&Number(p.unidades_por_envase)>1){
+    op('Agregar al carrito',
+      `<p><b>${esc(p.nombre)}</b><br><small>Caja de ${p.unidades_por_envase} · Bs ${money(p.precio)} la caja · Bs ${money(p.precio_unidad)} c/u</small></p>`
+      +`<label>Modo</label><select id="ct-modo"><option value="unidad">Por unidades</option><option value="caja">Por caja</option></select>`
+      +`<label>Cantidad</label><input id="ct-cant" type="number" min="1" step="1" value="1">`
+      +`<input type="hidden" id="ct-id" value="${p.id_producto}">`);
+    $('#mSave').onclick=agregarCarritoModal;
+    return;
+  }
+  const it=cart.find(c=>c.id_producto===id);if(it)it.cantidad++;else cart.push({id_producto:id,cantidad:1});paintCartFab();
+}
+function agregarCarritoModal(){
+  const id=Number($('#ct-id').value);
+  const p=prodsDb.find(x=>x.id_producto===id);if(!p)return;
+  const cant=Math.floor(Number($('#ct-cant').value));
+  if(!(cant>=1)){alert('Ingrese una cantidad válida.');return;}
+  const unidades=$('#ct-modo').value==='caja'?cant*Number(p.unidades_por_envase):cant;
+  const it=cart.find(c=>c.id_producto===id);
+  if(it)it.cantidad+=unidades;else cart.push({id_producto:id,cantidad:unidades});
+  cl();paintCartFab();
+}
+function cartCount(){return cart.reduce((a,c)=>a+c.cantidad,0)}
+function paintCartFab(){const e=document.getElementById('cartn');if(e)e.textContent=cartCount();}
+function toggleCart(force){
+  const d=document.getElementById('cartdrop');if(!d)return;
+  const show=force!==undefined?force:!d.classList.contains('on');
+  if(show){
+    const rows=cart.map((c,i)=>{const p=prodsDb.find(x=>x.id_producto===c.id_producto);if(!p)return '';return '<tr><td>'+p.id_producto+'</td><td>'+esc(p.nombre)+'</td><td>'+esc(p.concentracion)+'</td><td>'+esc(p.adicional)+'</td><td>Bs '+money(p.precio)+'</td><td><button class="btn r" title="Quitar del carrito" onclick="quitarCartDrop('+i+')">✕</button></td></tr>'}).join('');
+    d.innerHTML='<div class="tw"><table><tr><th>Codigo</th><th>Nombre</th><th>Concentracion</th><th>Adicional</th><th>Precio</th><th>Eliminar</th></tr>'+(rows||'<tr><td colspan="6">Carrito vacío.</td></tr>')+'</table></div><div class="pad"><button class="btn r full" title="Ir a la solicitud de compra" onclick="go(\'compra\')">Procesar Compra</button><button class="btn full" title="Vaciar el carrito" onclick="vaciarCarrito()">Vaciar carrito</button></div>';
+  }
+  d.classList.toggle('on',show);
+}
+function quitarCartDrop(i){cart.splice(i,1);paintCartFab();toggleCart(true);if(cur==='compra')draw();}
+function vaciarCarrito(){cart=[];paintCartFab();toggleCart(true);if(cur==='compra')draw();}
+const UNI_PLURAL={tableta:'tabletas',capsula:'cápsulas',inyectable:'inyectables',ampolla:'ampollas',jarabe:'frascos',crema:'tubos',supositorio:'supositorios',suspension:'frascos',aerosol:'envases',anillo:'anillos',champu:'frascos',emulsion:'frascos',enema:'enemas',espuma:'frascos',gel:'tubos'};
+function unidadDe(p){const k=String((p&&p.presentacion)||'').toLowerCase();return UNI_PLURAL[k]||'unidades';}
+function cantTxt(cant,p){
+  const uni=Number((p&&p.unidades_por_envase)||1),nom=unidadDe(p);
+  if(uni>1&&cant%uni===0){const c=cant/uni;return c+(c===1?' caja':' cajas')+' ('+cant+' '+nom+')';}
+  return cant+' '+nom;
+}
+function dragCart(e){
+  const d=document.getElementById('cartdrop');if(!d||!d.classList.contains('on'))return;
+  if(e.target.closest('button,input,select,textarea,a'))return;
+  e.preventDefault();
+  const r=d.getBoundingClientRect(),ox=e.clientX-r.left,oy=e.clientY-r.top;
+  d.style.left=r.left+'px';d.style.top=r.top+'px';d.style.right='auto';d.style.bottom='auto';
+  const mv=ev=>{d.style.left=(ev.clientX-ox)+'px';d.style.top=(ev.clientY-oy)+'px';};
+  const up=()=>{document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);};
+  document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
+}
+function setCant(i,v){v=Math.floor(Number(v));if(v>0)cart[i].cantidad=v;draw();}
+function quitarCart(i){cart.splice(i,1);draw();}
+async function realizarCompra(){
+  const cliente=$('#cp-cli').value.trim(),dn=$('#cp-dni').value.trim();
+  if(!cliente){alert('Ingrese el nombre del cliente.');return;}
+  if(!cart.length){alert('El carrito está vacío.');return;}
+  try{
+    const v=await api('/ventas',{method:'POST',body:JSON.stringify({cliente,dni_cliente:dn||null,usuario_dni:(ses&&ses.dni)||'12345',items:cart})});
+    cart=[];paintCartFab();await buscarVenta('');alert('Venta registrada. Código: '+v.codigo);go('ventas');
+  }catch(e){alert(e.message);}
+}
+function calcCompra(){
+  if(!$('#cp-desc'))return;
+  const d=Number($('#cp-desc').value||0),ing=Number($('#cp-ing').value||0);
+  const t=cart.reduce((a,c)=>{const p=prodsDb.find(x=>x.id_producto===c.id_producto);return a+(p?Number(p.precio_unidad)*c.cantidad:0)},0);
+  const tot=Math.max(t-d,0);
+  $('#cp-sub').textContent='Bs '+money(tot/1.18);
+  $('#cp-igv').textContent='Bs '+money(tot-tot/1.18);
+  $('#cp-tot').textContent='Bs '+money(tot);
+  $('#cp-vue').textContent='Bs '+money(ing-tot);
+}
+const prods=[["A FOLIC","0.5 mg","Caja Envase Blister Tabletas","IQ FARMA","Comercial","TABLETA",1.5,3],["AB AMBROMOX","600 mg","Caja Vial","FARMINDUSTRIA","Comercial","INYECTABLE",2,2],["AB AMBROMOX","1 200 mg","Vial + Accesorios","FARMINDUSTRIA","Comercial","INYECTABLE",1,685],["AB MOKS","250 mg + 15 mg/5 mL","Frasco X 60 mL","MEDIFARMA","Comercial","SUSPENSION",1,9]];
+const lotes=[[44,"A FOLIC",10,"distribuidora y droguería san carlos2","2020-06-30","ok"],[36,"A FOLIC",2,"d","-29 días","warn"],[41,"AB AMBROMOX",685,"d","1 día","ok"],[40,"AB AMBROMOX",2,"d","-29 días","warn"],[43,"AB MOKS",9,"juan diego","2 meses 16 días","ok"],[42,"AB MOKS",7,"juan diego2","22 días","ok"]];
+const provs=[["d","232","null","23"],["juan diego23aaaa","2147483647","null","fasfasef"],["distribuidora y droguería san carlos2","412341234","null","fasdfasdf"],["juan diego2","2147483647","null","fasefasef"]];
+const users=[["Root","Juan diego Polo Cosme","12345","26","Trujillo/Libertad/Perú","var(--r)"],["Administrador","fernando salazar chiroque","67890","2020","santiago de chile","var(--y)"],["Técnico","juan eder polo cosme","22232","29","null","var(--c)"],["Técnico","312321 asdas","20412154","0","null","var(--c)"]];
+const ventas=[[29,"2019-01-08 12:50:10","ee","0",3.5,"312321 asdas"],[30,"2019-02-08 15:30:50","segundo rojas","23423423",4.5,"Juan diego Polo Cosme"],[31,"2019-03-09 12:32:16","Fernando Robles","342324",20.5,"Juan diego Polo Cosme"],[56,"2020-07-29 13:52:17","fernando","0",4.5,"Juan diego Polo Cosme"]];
+const attrs={Laboratorio:["PORTUGAL","Bois","Desconocido","A & C MARVEL","A. MENARINI","ABBA S.A.C.","ABBOTT"],Tipo:["Comercial","Generico","Regalos","Joyeria"],Presentacion:["AEROSOL","ANILLO","CAPSULA","CHAMPU","CREMA","EMULSION","ENEMA","ESPUMA","GEL"]};
+const cartMock=[[0,"PREDNISONA","5 mg",1],[1,"PREDNISONA","50 mg",1],[2,"PREDNISONA","5 mg",1]];
+const er={usuario:[["dni","PK"],["nombre / apellidos",""],["edad",""],["tipo_usuario","Root/Administrador/Técnico"],["telefono, residencia, correo, sexo",""],["info_adicional, avatar, password",""]],
+producto:[["id","PK"],["nombre, concentracion, adicional",""],["precio",""],["avatar",""],["laboratorio_id","FK"],["tipo_id","FK"],["presentacion_id","FK"]],
+lote:[["codigo","PK"],["producto_id","FK"],["proveedor_id","FK"],["stock",""],["vencimiento","→ mes/día restantes calculados"]],
+proveedor:[["id","PK"],["nombre",""],["telefono, correo, direccion",""],["avatar",""]],
+laboratorio:[["id","PK"],["nombre",""],["logo",""]],tipo:[["id","PK"],["nombre","Comercial, Generico…"]],presentacion:[["id","PK"],["nombre","TABLETA, INYECTABLE…"]],
+venta:[["codigo","PK"],["fecha",""],["cliente, dni_cliente",""],["total (con IGV 18%)",""],["usuario_dni","FK vendedor"]],
+detalle_venta:[["venta_codigo","FK"],["lote_codigo","FK"],["cantidad",""],["precio",""],["subtotal",""]]};
+const menu=[["login","Inicio de sesión"],["catalogo","Catálogo"],["compra","Solicitud de compra"],["Usuario"],["datos","Datos personales"],["usuarios","Gestión usuario"],["Ventas"],["ventas","Listar ventas"],["Almacén"],["producto","Gestión producto"],["atributo","Gestión atributo"],["lote","Gestión lote"],["Compras"],["proveedor","Gestión proveedor"],["Análisis"],["bd","Modelo de datos"]];
+let cur=ses?"catalogo":"login",tab="Laboratorio";
+const money=n=>Number(n??0).toFixed(2);
+function op(t,b){$("#mt").textContent=t;$("#mbody").innerHTML=b;const s=$("#mSave");if(s)s.onclick=cl;$("#modal").classList.add("on")}
+function cl(){$("#modal").classList.remove("on")}
+const f=(l,p="",t="text")=>`<label>${l}</label><input type="${t}" placeholder="${p}">`;
+const search=p=>`<div class="box"><div class="bar">${p.t}</div><div class="pad"><input placeholder="${p.p}"></div></div>`;
+const btns=(...a)=>{const h=a.map(([c,t,fn,ti])=>'<button class="btn '+c+'"'+(ti?' title="'+ti+'"':'')+' onclick="'+(fn||'')+'">'+t+'</button>').join('');return '<div class="acts">'+h+'</div>';};
+function sel(l,o){return`<label>${l}</label><select>${o.map(x=>`<option>${x}</option>`).join("")}</select>`}
+let loteProd=null;
+function lt(id){
+  loteProd=(id===undefined||id===null)?null:id;
+  const provs=apiOk?provsDb.map(p=>`<option value="${p.id_proveedor}">${esc(p.nombre)}</option>`).join(''):provs.map(p=>`<option>${esc(p[0])}</option>`).join('');
+  op('Crear lote',(loteProd!==null?`<input type="hidden" id="lt-prod" value="${loteProd}">`:'')+`<label>Proveedor</label><select id="lt-prov">${provs}</select><label>Stock (unidades)</label><input id="lt-stock" placeholder="Ingrese stock en unidades"><label>Vencimiento</label><input id="lt-ven" type="date">`);
+  $('#mSave').onclick=guardarLote;
+}
+async function guardarLote(){
+  try{
+    await api('/lotes',{method:'POST',body:JSON.stringify({id_producto:loteProd,id_proveedor:Number($('#lt-prov').value),stock:Number($('#lt-stock').value),fecha_vencimiento:$('#lt-ven').value})});
+    cl();await buscarLote(loteQuery);
+  }catch(e){alert(e.message);}
+}
+function editarLote(c){
+  const l=lotesDb.find(x=>x.codigo===c);if(!l)return;
+  op('Editar lote',`<label>Stock</label><input id="lt-stock" value="${l.stock}" placeholder="Ingrese stock"><label>Vencimiento</label><input id="lt-ven" type="date" value="${String(l.fecha_vencimiento).slice(0,10)}">`);
+  $('#mSave').onclick=async()=>{try{await api('/lotes/'+c,{method:'PUT',body:JSON.stringify({stock:Number($('#lt-stock').value),fecha_vencimiento:$('#lt-ven').value})});cl();await buscarLote(loteQuery);}catch(e){alert(e.message);}};
+}
+async function eliminarLote(c){
+  if(!confirm('¿Eliminar este lote?'))return;
+  try{await api('/lotes/'+c,{method:'DELETE'});await buscarLote(loteQuery);}catch(e){alert(e.message);}
+}
+function crearProd(id){
+  const p=id?prodsDb.find(x=>Number(x.id_producto)===Number(id)):null;
+  const oL=(apiOk?labDb.map(l=>({id:l.id,nombre:l.nombre})):attrs.Laboratorio.map((n,i)=>({id:i,nombre:n}))).map(l=>`<option value="${l.id}"${p&&Number(p.id_laboratorio)===Number(l.id)?' selected':''}>${esc(l.nombre)}</option>`).join('');
+  const oT=(apiOk?tipoDb.map(l=>({id:l.id,nombre:l.nombre})):attrs.Tipo.map((n,i)=>({id:i,nombre:n}))).map(l=>`<option value="${l.id}"${p&&Number(p.id_tipo)===Number(l.id)?' selected':''}>${esc(l.nombre)}</option>`).join('');
+  const oP=(apiOk?presDb.map(l=>({id:l.id,nombre:l.nombre})):attrs.Presentacion.map((n,i)=>({id:i,nombre:n}))).map(l=>`<option value="${l.id}"${p&&Number(p.id_presentacion)===Number(l.id)?' selected':''}>${esc(l.nombre)}</option>`).join('');
+  op(p?'Editar producto':'Crear producto',
+    `<input type="hidden" id="pf-id" value="${p?p.id_producto:''}">`
+    +`<label>Nombre</label><input id="pf-nombre" value="${esc(p?.nombre??'')}" placeholder="Ingrese nombre">`
+    +`<label>Concentracion</label><input id="pf-conc" value="${esc(p?.concentracion??'')}" placeholder="Concentracion">`
+    +`<label>Adicional</label><input id="pf-adi" value="${esc(p?.adicional??'')}" placeholder="Adicional">`
+    +`<label>Precio por caja</label><input id="pf-precio" type="number" step="0.01" min="0" value="${p?.precio??''}" placeholder="0.00">`
+    +`<div class="r2"><div><label>Unidades por caja</label><input id="pf-uni" type="number" min="1" step="1" value="${p?.unidades_por_envase??1}"></div><div><label>Precio por unidad</label><input id="pf-pu" type="number" step="0.01" min="0" value="${p?.precio_unidad??''}" placeholder="0.00"></div></div>`
+    +`<label>Laboratorio</label><select id="pf-lab">${oL}</select>`
+    +`<label>Tipo</label><select id="pf-tipo">${oT}</select>`
+    +`<label>Presentacion</label><select id="pf-pres">${oP}</select>`);
+  $('#mSave').onclick=guardarProd;
+}
+async function guardarProd(){
+  const id=$('#pf-id').value;
+  const puVal=$('#pf-pu').value;
+  const body={nombre:$('#pf-nombre').value.trim(),concentracion:$('#pf-conc').value.trim()||null,adicional:$('#pf-adi').value.trim()||null,precio:Number($('#pf-precio').value),unidades_por_envase:Number($('#pf-uni').value||1),precio_unidad:puVal===''||puVal===null?undefined:Number(puVal),id_laboratorio:Number($('#pf-lab').value),id_tipo:Number($('#pf-tipo').value),id_presentacion:Number($('#pf-pres').value)};
+  if(!body.nombre||!(body.precio>=0)){alert('Complete nombre y precio.');return;}
+  try{
+    await api(id?'/productos/'+id:'/productos',{method:id?'PUT':'POST',body:JSON.stringify(body)});
+    cl();await buscarProd(prodQuery);
+  }catch(e){alert(e.message);}
+}
+async function desactivarProd(id){
+  if(!confirm('¿Desactivar este producto? Dejará de aparecer en el listado.'))return;
+  try{await api('/productos/'+id,{method:'DELETE'});await buscarProd(prodQuery);}
+  catch(e){alert(e.message);}
+}
+async function det(codigo){
+  if(codigo===undefined||codigo===null){op('Registro de venta 56','<p><b>Fecha:</b> 2020-07-29 13:52:17<br><b>Cliente:</b> fernando · <b>C.I.:</b> 0<br><b>Vendedor:</b> Juan diego Polo Cosme</p><div class="tw"><table><tr><th>Cant.</th><th>Precio</th><th>Producto</th><th>Subtotal</th></tr><tr><td>1</td><td>2</td><td>A FOLIC 0.5 mg</td><td>1.5</td></tr><tr><td>1</td><td>2</td><td>AB AMBROMOX 600 mg</td><td>2</td></tr><tr><td>1</td><td>1</td><td>AB AMBROMOX 1 200 mg</td><td>1</td></tr></table></div><h3 style="text-align:right">Total: 4.5</h3>');return;}
+  try{
+    const v=await api('/ventas/'+codigo);
+    op('Registro de venta '+v.codigo,`<p><b>Fecha:</b> ${fmtFecha(v.fecha)}<br><b>Cliente:</b> ${esc(v.cliente)} · <b>C.I.:</b> ${esc(v.dni_cliente??'')}<br><b>Vendedor:</b> ${esc(v.vendedor)}</p><div class="tw"><table><tr><th>Cant.</th><th>Precio</th><th>Producto</th><th>Subtotal</th></tr>${v.items.map(i=>`<tr><td>${i.cantidad}</td><td>Bs ${money(i.precio)}</td><td>${esc(i.producto)}${i.detalle&&i.detalle.trim()?' '+esc(i.detalle.trim()):''}</td><td>Bs ${money(i.subtotal)}</td></tr>`).join('')}</table></div><h3 style="text-align:right">Total: Bs ${money(v.total)}</h3>`);
+  }catch(e){alert(e.message);}
+}
+async function anularVenta(c){
+  if(!confirm('¿Anular esta venta? Se devolverá el stock a los lotes.'))return;
+  try{await api('/ventas/'+c,{method:'DELETE'});await buscarVenta(ventaQuery);}catch(e){alert(e.message);}
+}
+function crearAtr(){op('Crear '+tab.toLowerCase(),`<label>Nombre</label><input id="at-nombre" placeholder="Ingrese nombre">`);$('#mSave').onclick=guardarAtr;}
+function editarAtr(id){
+  const key=tab.toLowerCase();
+  const a=((key==='laboratorio'?labDb:key==='tipo'?tipoDb:presDb).find(x=>x.id===id))||{nombre:''};
+  op('Editar '+tab.toLowerCase(),`<input type="hidden" id="at-id" value="${id}"><label>Nombre</label><input id="at-nombre" value="${esc(a.nombre)}" placeholder="Ingrese nombre">`);
+  $('#mSave').onclick=guardarAtr;
+}
+async function guardarAtr(){
+  const key=tab.toLowerCase(),id=$('#at-id')?$('#at-id').value:'',nombre=$('#at-nombre').value.trim();
+  if(!nombre){alert('Ingrese el nombre.');return;}
+  try{
+    await api(id?'/atributos/'+key+'/'+id:'/atributos/'+key,{method:id?'PUT':'POST',body:JSON.stringify({nombre})});
+    cl();await recargarAtrs();
+  }catch(e){alert(e.message);}
+}
+async function eliminarAtr(id){
+  if(!confirm('¿Eliminar este registro?'))return;
+  try{await api('/atributos/'+tab.toLowerCase()+'/'+id,{method:'DELETE'});await recargarAtrs();}catch(e){alert(e.message);}
+}
+function crearProv(){
+  op('Crear proveedor',`<label>Nombres</label><input id="pv-nombre" placeholder="Ingrese nombre"><label>Teléfono</label><input id="pv-tel" placeholder="Ingrese teléfono"><label>Correo</label><input id="pv-correo" placeholder="Ingrese correo"><label>Dirección</label><input id="pv-dir" placeholder="Ingrese dirección">`);
+  $('#mSave').onclick=guardarProv;
+}
+function editarProv(id){
+  const p=provsDb.find(x=>x.id_proveedor===id);if(!p)return;
+  op('Editar proveedor',`<input type="hidden" id="pv-id" value="${p.id_proveedor}"><label>Nombres</label><input id="pv-nombre" value="${esc(p.nombre)}" placeholder="Ingrese nombre"><label>Teléfono</label><input id="pv-tel" value="${esc(p.telefono??'')}" placeholder="Ingrese teléfono"><label>Correo</label><input id="pv-correo" value="${esc(p.correo??'')}" placeholder="Ingrese correo"><label>Dirección</label><input id="pv-dir" value="${esc(p.direccion??'')}" placeholder="Ingrese dirección">`);
+  $('#mSave').onclick=guardarProv;
+}
+async function guardarProv(){
+  const id=$('#pv-id')?$('#pv-id').value:'';
+  const body={nombre:$('#pv-nombre').value.trim(),telefono:$('#pv-tel').value.trim()||null,correo:$('#pv-correo').value.trim()||null,direccion:$('#pv-dir').value.trim()||null};
+  if(!body.nombre){alert('Ingrese el nombre.');return;}
+  try{
+    await api(id?'/proveedores/'+id:'/proveedores',{method:id?'PUT':'POST',body:JSON.stringify(body)});
+    cl();await buscarProv(provQuery);
+  }catch(e){alert(e.message);}
+}
+async function eliminarProv(id){
+  if(!confirm('¿Eliminar este proveedor?'))return;
+  try{await api('/proveedores/'+id,{method:'DELETE'});await buscarProv(provQuery);}catch(e){alert(e.message);}
+}
+function guardarDatos(){
+  const dni=(ses&&ses.dni)||'12345';
+  const body={telefono:$('#dt-tel').value.trim()||null,residencia:$('#dt-res').value.trim()||null,correo:$('#dt-correo').value.trim()||null,sexo:$('#dt-sexo').value.trim()||null,info_adicional:$('#dt-info').value.trim()||null};
+  api('/usuarios/'+encodeURIComponent(dni),{method:'PUT',body:JSON.stringify(body)}).then(u=>{ses=u;sessionStorage.setItem('ses',JSON.stringify(u));alert('Datos actualizados.');edicionActiva=false;draw();for(const id of ['dt-tel','dt-res','dt-correo','dt-sexo','dt-info']){const el=document.getElementById(id);if(el)el.value='';}}).catch(e=>alert(e.message));
+}
+function cambiarPass(){
+  op('Cambiar password',`<label>Password actual</label><input id="pw-act" type="password" placeholder="Ingrese password actual"><label>Password nuevo</label><input id="pw-new" type="password" placeholder="Ingrese password nuevo">`);
+  $('#mSave').onclick=async()=>{
+    const dni=(ses&&ses.dni)||'12345';
+    try{await api('/usuarios/'+encodeURIComponent(dni),{method:'PUT',body:JSON.stringify({password_actual:$('#pw-act').value,password_nuevo:$('#pw-new').value})});cl();alert('Contraseña actualizada.');}
+    catch(e){alert(e.message);}
+  };
+}
+function crearUser(){
+  op('Crear usuario',
+    `<label>Nombre</label><input id="us-nombre" placeholder="Nombre">`
+    +`<label>C.I.</label><input id="us-dni" placeholder="C.I." inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')">`
+    +`<label>Edad</label><input id="us-edad" type="number" min="0" placeholder="Edad">`
+    +`<label>Teléfono</label><input id="us-tel" placeholder="Teléfono">`
+    +`<label>Residencia</label><input id="us-res" placeholder="Residencia">`
+    +`<label>Correo</label><input id="us-correo" placeholder="Correo">`
+    +`<label>Sexo</label><input id="us-sexo" placeholder="Sexo">`
+    +`<label>Información adicional</label><textarea id="us-info" rows="3" placeholder="Información adicional"></textarea>`);
+  $('#mSave').onclick=guardarUser;
+}
+async function guardarUser(){
+  const edadVal=$('#us-edad').value;
+  const body={nombre:$('#us-nombre').value.trim(),dni:$('#us-dni').value.trim(),edad:edadVal===''||edadVal===null?undefined:Number(edadVal),telefono:$('#us-tel').value.trim()||null,residencia:$('#us-res').value.trim()||null,correo:$('#us-correo').value.trim()||null,sexo:$('#us-sexo').value.trim()||null,info_adicional:$('#us-info').value.trim()||null};
+  if(!body.nombre||!body.dni){alert('Ingrese nombre y C.I.');return;}
+  try{
+    await api('/usuarios',{method:'POST',body:JSON.stringify(body)});
+    cl();await buscarUser(userQuery);
+  }catch(e){alert(e.message);}
+}
+async function eliminarUser(dni){
+  if(!confirm('¿Eliminar este usuario?'))return;
+  try{await api('/usuarios/'+encodeURIComponent(dni),{method:'DELETE'});await buscarUser(userQuery);}catch(e){alert(e.message);}
+}
+async function tipoUser(dni,sentido){
+  try{await api('/usuarios/'+encodeURIComponent(dni)+'/tipo',{method:'PUT',body:JSON.stringify({sentido})});await buscarUser(userQuery);}catch(e){alert(e.message);}
+}
+function logoCell(logo){
+  if(logo)return '<td><img src="/logos/'+esc(logo)+'" style="width:32px;height:32px;border-radius:50%;object-fit:cover"></td>';
+  return '<td><div class="av" style="width:32px;height:32px"></div></td>';
+}
+function logoBig(a){
+  const img=a.logo
+    ?'<img src="/logos/'+esc(a.logo)+'" style="width:80px;height:80px;border-radius:50%;object-fit:cover">'
+    :'<div class="av" style="margin:auto;width:80px;height:80px"></div>';
+  return '<div style="text-align:center">'+img+'<br><b>'+esc(a.nombre)+'</b></div><br><input type="file" id="logo-file" accept="image/*">';
+}
+function logoLab(id){
+  const a=labDb.find(x=>x.id===id)||{nombre:''};
+  op('Cambiar Logo',logoBig(a));
+  $('#mSave').onclick=()=>guardarLogo(id);
+}
+async function guardarLogo(id){
+  const inp=document.getElementById('logo-file');
+  if(!inp||!inp.files||!inp.files[0]){alert('Seleccione un archivo de imagen.');return;}
+  try{
+    const fd=new FormData();fd.append('logo',inp.files[0]);
+    const r=await fetch('/api/atributos/laboratorio/'+id+'/logo',{method:'POST',body:fd});
+    let j=null;try{j=await r.json()}catch{}
+    if(!r.ok||!j||!j.ok)throw new Error((j&&j.message)||('Error '+r.status));
+    cl();await recargarAtrs();
+  }catch(e){alert(e.message);}
+}
+function avatarCellP(avatar){
+  if(avatar)return '<img src="/avatar/'+esc(avatar)+'" style="width:56px;height:56px;border-radius:50%;object-fit:cover;flex:none">';
+  return '<div class="av"></div>';
+}
+function avatarBigP(p){
+  const img=p.avatar
+    ?'<img src="/avatar/'+esc(p.avatar)+'" style="width:80px;height:80px;border-radius:50%;object-fit:cover">'
+    :'<div class="av" style="margin:auto;width:80px;height:80px"></div>';
+  return '<div style="text-align:center">'+img+'<br><b>'+esc(p.nombre)+'</b></div><br><input type="file" id="avatar-file" accept="image/*">';
+}
+function avatarProv(id){
+  const p=provsDb.find(x=>x.id_proveedor===id)||{nombre:''};
+  op('Cambiar Avatar',avatarBigP(p));
+  $('#mSave').onclick=()=>guardarAvatar(id);
+}
+async function guardarAvatar(id){
+  const inp=document.getElementById('avatar-file');
+  if(!inp||!inp.files||!inp.files[0]){alert('Seleccione un archivo de imagen.');return;}
+  try{
+    const fd=new FormData();fd.append('avatar',inp.files[0]);
+    const r=await fetch('/api/proveedores/'+id+'/avatar',{method:'POST',body:fd});
+    let j=null;try{j=await r.json()}catch{}
+    if(!r.ok||!j||!j.ok)throw new Error((j&&j.message)||('Error '+r.status));
+    cl();await buscarProv(provQuery);
+  }catch(e){alert(e.message);}
+}
+async function imprimirVenta(codigo){
+  let v;
+  if(codigo===undefined||codigo===null){
+    v={codigo:56,fecha:'2020-07-29 13:52:17',cliente:'fernando',dni_cliente:'0',total:4.5,vendedor:'Juan diego Polo Cosme',items:[
+      {cantidad:1,precio:2,subtotal:1.5,producto:'A FOLIC',concentracion:'0.5 mg',adicional:'Caja Envase Blister Tabletas',laboratorio:'IQ FARMA',presentacion:'TABLETA',tipo:'Comercial'},
+      {cantidad:1,precio:2,subtotal:2,producto:'AB AMBROMOX',concentracion:'600 mg',adicional:'Caja Vial',laboratorio:'FARMINDUSTRIA',presentacion:'INYECTABLE',tipo:'Comercial'},
+      {cantidad:1,precio:1,subtotal:1,producto:'AB AMBROMOX',concentracion:'1 200 mg',adicional:'Vial + Accesorios',laboratorio:'FARMINDUSTRIA',presentacion:'INYECTABLE',tipo:'Comercial'}]};
+  }else{
+    try{v=await api('/ventas/'+codigo);}catch(e){alert(e.message);return;}
+  }
+  const sub=v.total/1.18,igv=v.total-sub;
+  const filas=v.items.map(i=>'<tr><td>'+esc(i.producto)+'</td><td>'+esc(i.concentracion)+'</td><td>'+esc(i.adicional)+'</td><td>'+esc(i.laboratorio)+'</td><td>'+esc(i.presentacion)+'</td><td>'+esc(i.tipo)+'</td><td>'+i.cantidad+'</td><td>Bs '+money(i.precio)+'</td><td>Bs '+money(i.subtotal)+'</td></tr>').join('');
+  document.getElementById('print-area').innerHTML=
+    '<div style="text-align:center"><h2 style="margin:4px">COMPROBANTE DE PAGO</h2></div>'
+    +'<div style="text-align:right"><b>Farmacia</b><br>Dirección Numero ###, Ciudad, Provincia<br>(000) 000000<br>farmacia@example.com</div>'
+    +'<p>Codigo de Venta: '+v.codigo+'<br>Cliente: '+esc(v.cliente)+'<br>C.I.: '+esc(v.dni_cliente)+'<br>Fecha y Hora: '+fmtFecha(v.fecha)+'<br>Vendedor: '+esc(v.vendedor)+'</p>'
+    +'<table border="1" cellspacing="0" cellpadding="4" style="width:100%;border-collapse:collapse"><tr><th>Producto</th><th>Concentracion</th><th>Adicional</th><th>Laboratorio</th><th>Presentacion</th><th>Tipo</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th></tr>'+filas+'</table>'
+    +'<p style="text-align:right">SUBTOTAL&nbsp;&nbsp;Bs.'+money(sub)+'<br>IGV(18%)&nbsp;&nbsp;Bs.'+money(igv)+'<br><b>TOTAL&nbsp;&nbsp;Bs.'+money(v.total)+'</b></p>'
+    +'<small>NOTICE:<br>*Presentar este comprobante de pago para cualquier reclamo o devolución.<br>*El reclamo procederá dentro de las 24 horas de haber hecho la compra.<br>*Si el producto está dañado o abierto, la devolución no procederá.<br>*Revise su cambio antes de salir del establecimiento.</small>';
+  window.print();
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest?e.target.closest('button,nav a'):null;
+  if(!b)return;
+  b.classList.remove('flash');void b.offsetWidth;b.classList.add('flash');
+  setTimeout(()=>b.classList.remove('flash'),400);
+});
+const V={
+login:()=>`<div class="login"><form onsubmit="doLogin();return false"><div class="av" style="margin:0 auto 8px"></div><h1>FARMACIA</h1><label>Nombre</label><input id="lg-nombre" placeholder="Nombre" autocomplete="off"><label>Contraseña</label><input id="lg-pass" type="password" placeholder="Contraseña"><br><button class="btn g" style="width:100%;border-radius:20px" title="Ingresar al sistema">INICIAR SESIÓN</button></form></div>`,
+catalogo:()=>{
+  const riesgo=(apiOk?lotesDb.map(l=>{const r=relVence(l.fecha_vencimiento);return{codigo:l.codigo,prod:l.producto,stock:l.stock,prov:l.proveedor,vence:r.t,cls:r.cls}}):lotes.map(l=>({codigo:l[0],prod:l[1],stock:l[2],prov:l[3],vence:l[4],cls:l[5]})));
+  const cards=apiOk
+    ?prodsDb.map(p=>`<div class="card"><div><small>Stock ${p.stock}</small><br>Código: ${p.id_producto}<br><b>${esc(p.nombre)}</b><br><b>Bs ${money(p.precio_unidad)}${p.unidades_por_envase>1?' c/u':''}</b><br><small>${esc(p.concentracion??'')} · ${esc(p.adicional??'')}<br>${esc(p.laboratorio)} · ${esc(p.tipo)} · ${esc(p.presentacion)}${p.unidades_por_envase>1?'<br>Caja de '+p.unidades_por_envase+' · Bs '+money(p.precio):''}</small>${btns(["b","Agregar al carrito",`addCart(${p.id_producto})`,"Agregar al carrito de compra"])}</div><div class="av"></div></div>`).join('')
+    :prods.map((p,i)=>`<div class="card"><div><small>Stock ${p[7]}</small><br>Código: ${12+i}<br><b>${p[0]}</b><br><b>Bs ${money(p[6])}</b><br><small>${p[1]} · ${p[2]}<br>${p[3]} · ${p[4]} · ${p[5]}</small>${btns(["b","Agregar al carrito","","Agregar al carrito de compra"])}</div><div class="av"></div></div>`).join('');
+  return `<h1>Catálogo</h1><div class="box"><div class="bar" style="background:var(--r)">Lotes en riesgo (${riesgo.length}) <button class="btn k" style="padding:2px 10px;margin-left:10px" title="${riesgoAbierto?'Ocultar la tabla de lotes':'Mostrar la tabla de lotes'}" onclick="toggleRiesgo()">${riesgoAbierto?'Minimizar':'Mostrar'}</button></div>${riesgoAbierto?`<div class="tw"><table><tr><th>Cod</th><th>Producto</th><th>Stock</th><th>Proveedor</th><th>Vence en</th></tr>${riesgo.map(l=>`<tr style="background:${l.cls=="warn"?"#f8d7da":l.cls=="good"?"#d4edda":"#fff3cd"};color:#212529"><td>${l.codigo}</td><td>${esc(l.prod)}</td><td>${l.stock}</td><td>${esc(l.prov)}</td><td>${esc(l.vence)}</td></tr>`).join("")}</table></div>`:''}</div>`
+  +`<div class="box"><div class="bar">Buscar producto</div><div class="pad"><input id="q-cat" placeholder="Ingrese nombre de producto" autocomplete="off" value="${esc(catQuery)}" oninput="buscarCatLive(this.value)" onkeydown="if(event.key==='Enter')buscarCat(this.value)"></div></div><div class="grid">${cards||'<div class="box pad">Sin productos.</div>'}</div>`;
+},
+compra:()=>{const det=cart.map((c,i)=>{const p=prodsDb.find(x=>x.id_producto===c.id_producto);return{i,p,cant:c.cantidad}}).filter(x=>x.p);const s=det.reduce((a,x)=>a+Number(x.p.precio_unidad)*x.cant,0);return`<h1>Compra</h1>${apiOk?'':'<div class="box pad">Sin conexión al API: no se puede registrar la compra.</div>'}<div class="box pad"><h2 style="text-align:center">SOLICITUD DE COMPRA</h2><div class="r2"><div><label>Cliente</label><input id="cp-cli" placeholder="Ingrese nombre" autocomplete="off"></div><div><label>C.I.</label><input id="cp-dni" placeholder="Ingrese C.I." autocomplete="off" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')"></div></div><p><b style="color:var(--g)">Vendedor:</b> ${esc((ses&&ses.nombre)||'Juan diego')}</p></div><div class="box tw"><table><tr><th>Nombre</th><th>Concentración</th><th>Adicional</th><th>Presentación</th><th>Cantidad</th><th>Sub total</th><th></th></tr>${det.map(x=>`<tr><td>${esc(x.p.nombre)}</td><td>${esc(x.p.concentracion??'')}</td><td>${esc(x.p.adicional??'')}</td><td>${esc(x.p.presentacion)}</td><td><input type="number" value="${x.cant}" min="1" style="width:70px" onchange="setCant(${x.i},this.value)"><br><small>${cantTxt(x.cant,x.p)}</small></td><td>Bs ${money(Number(x.p.precio_unidad)*x.cant)}</td><td>${btns(["r","✕",`quitarCart(${x.i})`,"Quitar del carrito"])}</td></tr>`).join("")}</table></div>
+<div class="r2"><div><div class="kpi" style="background:#e0a800"><small>SUB TOTAL</small><b id="cp-sub">Bs ${money(s/1.18)}</b></div><br><div class="kpi" style="background:#e0a800"><small>IGV (18%)</small><b id="cp-igv">Bs ${money(s-s/1.18)}</b></div></div><div><div class="kpi" style="background:var(--r)"><small>DESCUENTO</small><input id="cp-desc" placeholder="Ingrese descuento" oninput="calcCompra()"></div><br><div class="kpi" style="background:var(--c)"><small>TOTAL</small><b id="cp-tot">Bs ${money(s)}</b></div></div><div><div class="kpi" style="background:var(--g)"><small>INGRESO</small><input id="cp-ing" placeholder="Ingrese dinero" oninput="calcCompra()"></div><br><div class="kpi" style="background:var(--c)"><small>VUELTO</small><b id="cp-vue">Bs ${money(-s)}</b></div></div></div><br><button class="btn" title="Volver al catálogo" onclick="go('catalogo')">Seguir comprando</button> <button class="btn g" title="Registrar la venta y descontar stock" onclick="realizarCompra()">Realizar compra</button>`},
+ventas:()=>{
+  const r=resumenDb||{dia_vendedor:4.5,total_dia:4.5,mensual:35,anual:329};
+  const rows=apiOk
+    ?ventasDb.map(v=>`<tr><td>${v.codigo}</td><td>${fmtFecha(v.fecha)}</td><td>${esc(v.cliente)}</td><td>${esc(v.dni_cliente??'')}</td><td>Bs ${money(v.total)}</td><td>${esc(v.vendedor)}</td><td>${btns(["k","🖨",`imprimirVenta(${v.codigo})`,"Imprimir comprobante"],["g","🔍",`det(${v.codigo})`,"Ver detalle de la venta"],["r","✕",`anularVenta(${v.codigo})`,"Anular la venta"])}</td></tr>`).join('')
+    :ventas.map(v=>`<tr><td>${v[0]}</td><td>${v[1]}</td><td>${v[2]}</td><td>${v[3]}</td><td>${v[4]}</td><td>${v[5]}</td><td>${btns(["k","🖨","imprimirVenta()","Imprimir comprobante"],["g","🔍","det()","Ver detalle de la venta"],["r","✕","","Anular la venta"])}</td></tr>`).join('');
+  return `<h1>Gestión ventas</h1><div class="r2"><div class="kpi" style="background:var(--c)"><b>Bs ${money(r.dia_vendedor)}</b>Venta del día por vendedor</div><div class="kpi" style="background:var(--g)"><b>Bs ${money(r.total_dia)}</b>Venta total del día</div><div class="kpi" style="background:#e0a800"><b>Bs ${money(r.mensual)}</b>Venta mensual</div><div class="kpi" style="background:var(--r)"><b>Bs ${money(r.anual)}</b>Venta anual</div></div><br><div class="box"><div class="bar">Buscar ventas</div><div class="pad"><input id="q-ventas" placeholder="Buscar…" autocomplete="off" value="${esc(ventaQuery)}" oninput="buscarVentaLive(this.value)" onkeydown="if(event.key==='Enter')buscarVenta(this.value)"></div></div><div class="box tw"><table><tr><th>Código</th><th>Fecha</th><th>Cliente</th><th>C.I.</th><th>Total</th><th>Vendedor</th><th>Acción</th></tr>${rows||'<tr><td colspan="7">Sin ventas registradas.</td></tr>'}</table></div>`;
+},
+producto:()=>{
+  const cards=apiOk
+    ?prodsDb.map(p=>`<div class="card"><div><small>Stock ${p.stock}</small><br>Código: ${p.id_producto}<br><b>${esc(p.nombre)}</b><br><b>Bs ${money(p.precio_unidad)}${p.unidades_por_envase>1?' c/u':''}</b><br><small>${esc(p.concentracion??'')} · ${esc(p.adicional??'')}<br>${esc(p.laboratorio)} · ${esc(p.tipo)} · ${esc(p.presentacion)}${p.unidades_por_envase>1?'<br>Caja de '+p.unidades_por_envase+' · Bs '+money(p.precio):''}</small>${btns(["g","📦",`lt(${p.id_producto})`,"Crear lote para este producto"],["g","✎",`crearProd(${p.id_producto})`,"Editar producto"],["b","🖼","op('Cambiar logo',f('Archivo','','file'))","Cambiar logo"],["r","✕",`desactivarProd(${p.id_producto})`,"Desactivar producto"])}</div><div class="av"></div></div>`).join('')
+    :prods.map(p=>`<div class="card"><div><b>${p[0]}</b> · <b>Bs ${money(p[6])}</b><br><small>${p[1]} · ${p[2]}<br>${p[3]} · ${p[4]} · ${p[5]}</small>${btns(["g","📦","lt()","Crear lote para este producto"],["g","✎","","Editar producto"],["b","🖼","op('Cambiar logo',f('Archivo','','file'))","Cambiar logo"],["r","✕","","Desactivar producto"])}</div><div class="av"></div></div>`).join('');
+  return `<h1>Gestión producto <button class="btn" title="Crear un nuevo producto" onclick="crearProd()">Crear producto</button></h1>`
+    +(apiOk?'':'<div class="box pad">Sin conexión al API: mostrando datos de ejemplo.</div>')
+    +`<div class="box"><div class="bar">Buscar producto</div><div class="pad"><input placeholder="Ingrese nombre de producto y pulse Enter" value="${esc(prodQuery)}" onkeydown="if(event.key==='Enter')buscarProd(this.value)"></div></div>`
+    +`<div class="grid">${cards||'<div class="box pad">Sin productos registrados.</div>'}</div>`;
+},
+lote:()=>{
+  const cards=apiOk
+    ?lotesDb.map(l=>{const r=relVence(l.fecha_vencimiento);return`<div class="card ${r.cls}"><div><small>Código ${l.codigo}</small> · Stock <b>${l.stock}</b><br><b>${esc(l.producto)}</b><br><small>Proveedor: ${esc(l.proveedor)}<br>Vence: ${esc(r.t)}</small>${btns(["g","✎",`editarLote(${l.codigo})`,"Editar lote"],["r","✕",`eliminarLote(${l.codigo})`,"Eliminar lote"])}</div><div class="av"></div></div>`}).join('')
+    :lotes.map(l=>`<div class="card ${l[5]}"><div><small>Código ${l[0]}</small> · Stock <b>${l[2]}</b><br><b>${l[1]}</b><br><small>Proveedor: ${l[3]}<br>Vence: ${l[4]}</small>${btns(["g","✎","op('Editar lote',f('Stock','${l[2]}'))","Editar lote"],["r","✕","","Eliminar lote"])}</div><div class="av"></div></div>`).join('');
+  return `<h1>Gestión lote</h1>`
+    +(apiOk?'':'<div class="box pad">Sin conexión al API: mostrando datos de ejemplo.</div>')
+    +`<div class="box"><div class="bar">Buscar lotes</div><div class="pad"><input placeholder="Ingrese nombre de producto" value="${esc(loteQuery)}" onkeydown="if(event.key==='Enter')buscarLote(this.value)"></div></div>`
+    +`<div class="grid">${cards||'<div class="box pad">Sin lotes registrados.</div>'}</div>`;
+},
+atributo:()=>{
+  const key=tab.toLowerCase();
+  const rows=apiOk?((key==='laboratorio'?labDb:key==='tipo'?tipoDb:presDb).map(a=>({id:a.id,nombre:a.nombre,logo:a.logo}))):(attrs[tab]||[]).map((a,i)=>({id:i,nombre:a}));
+  return `<h1>Gestión atributos</h1><div class="tabs">${Object.keys(attrs).map(t=>`<button class="btn ${t==tab?"on":""}" title="Ver ${t}" onclick="tab='${t}';draw()">${t}</button>`).join("")}</div><div class="box"><div class="bar">Busca ${tab.toLowerCase()} <button class="btn" title="Crear ${tab.toLowerCase()}" onclick="crearAtr()">Crear ${tab.toLowerCase()}</button></div><div class="pad"><input placeholder="Ingrese nombre"></div><div class="tw"><table><tr><th>Acción</th>${tab=="Laboratorio"?"<th>Logo</th>":""}<th>${tab}</th></tr>${rows.map(a=>`<tr><td>${btns(...(tab=="Laboratorio"?[["c","🖼",`logoLab(${a.id})`,"Cambiar logo"]]:[]),["g","✎",`editarAtr(${a.id})`,"Editar"],["r","✕",`eliminarAtr(${a.id})`,"Eliminar"])}</td>${tab=="Laboratorio"?logoCell(a.logo):""}<td>${esc(a.nombre)}</td></tr>`).join("")}</table></div></div>`;
+},
+proveedor:()=>{
+  const cards=apiOk
+    ?provsDb.map(p=>`<div class="card"><div><span class="pill" style="background:var(--g)">Proveedor</span><br><b>${esc(p.nombre)}</b><br><small>Dirección: ${esc(p.direccion??'')}<br>Teléfono #: ${esc(p.telefono??'')}<br>Correo #: ${esc(p.correo??'')}</small>${btns(["c","🖼",`avatarProv(${p.id_proveedor})`,"Cambiar avatar"],["g","✎",`editarProv(${p.id_proveedor})`,"Editar proveedor"],["r","✕",`eliminarProv(${p.id_proveedor})`,"Eliminar proveedor"])}</div>${avatarCellP(p.avatar)}</div>`).join('')
+    :provs.map(p=>`<div class="card"><div><span class="pill" style="background:var(--g)">Proveedor</span><br><b>${p[0]}</b><br><small>Dirección: ${p[3]}<br>Teléfono #: ${p[1]}<br>Correo #: ${p[2]}</small>${btns(["c","🖼","","Cambiar avatar"],["g","✎","","Editar proveedor"],["r","✕","","Eliminar proveedor"])}</div><div class="av"></div></div>`).join('');
+  return `<h1>Gestión proveedor <button class="btn" title="Crear un nuevo proveedor" onclick="crearProv()">Crear proveedor</button></h1>`
+    +(apiOk?'':'<div class="box pad">Sin conexión al API: mostrando datos de ejemplo.</div>')
+    +`<div class="box"><div class="bar">Buscar proveedor</div><div class="pad"><input placeholder="Ingrese nombre de proveedor" value="${esc(provQuery)}" onkeydown="if(event.key==='Enter')buscarProv(this.value)"></div></div>`
+    +`<div class="grid">${cards||'<div class="box pad">Sin proveedores registrados.</div>'}</div>`;
+},
+usuarios:()=>{
+  const color=t=>t==="Root"?"var(--r)":t==="Administrador"?"var(--y)":"var(--c)";
+  const cards=apiOk
+    ?usersDb.map(u=>`<div class="card"><div><span class="pill" style="background:${color(u.tipo_usuario)};color:#212529">${esc(u.tipo_usuario)}</span><br><b>${esc(u.nombre)}</b><br><small>C.I.: ${esc(u.dni)} · Edad: ${u.edad??''}<br>Residencia: ${esc(u.residencia??'')}</small>${u.tipo_usuario=="Root"?"":btns(["r","Eliminar",`eliminarUser('${esc(u.dni)}')`,"Eliminar usuario"],(u.tipo_usuario=="Técnico"?["k","Ascender",`tipoUser('${esc(u.dni)}','up')`,"Ascender a Administrador"]:["k","Descender",`tipoUser('${esc(u.dni)}','down')`,"Descender a Técnico"]))}</div><div class="av"></div></div>`).join('')
+    :users.map(u=>`<div class="card"><div><span class="pill" style="background:${u[5]};color:#212529">${u[0]}</span><br><b>${u[1]}</b><br><small>C.I.: ${u[2]} · Edad: ${u[3]}<br>Residencia: ${u[4]}</small>${u[0]=="Root"?"":btns(["r","Eliminar","","Eliminar usuario"],["k",u[0]=="Técnico"?"Ascender":"Descender","",u[0]=="Técnico"?"Ascender a Administrador":"Descender a Técnico"])}</div><div class="av"></div></div>`).join('');
+  return `<h1>Gestión usuarios <button class="btn" title="Crear un nuevo usuario" onclick="crearUser()">Crear usuario</button></h1>`
+    +(apiOk?'':'<div class="box pad">Sin conexión al API: mostrando datos de ejemplo.</div>')
+    +`<div class="box"><div class="bar">Buscar usuario</div><div class="pad"><input placeholder="Ingrese nombre de usuario" value="${esc(userQuery)}" onkeydown="if(event.key==='Enter')buscarUser(this.value)"></div></div>`
+    +`<div class="grid">${cards||'<div class="box pad">Sin usuarios registrados.</div>'}</div>`;
+},
+datos:()=>{
+  const u=ses||{nombre:'Juan diego Polo Cosme',edad:26,dni:'12345',tipo_usuario:'Root',telefono:'325465',residencia:'Trujillo/Libertad/Perú',correo:'',sexo:'Masculino',info_adicional:'Analista Programador'};
+  const partes=String(u.nombre||'').split(' '),primero=partes[0]||'',resto=partes.slice(1).join(' ');
+  const col=u.tipo_usuario==="Root"?"var(--r)":u.tipo_usuario==="Administrador"?"var(--y)":"var(--c)";
+  return `<h1>Datos personales</h1><div class="r2" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr))"><div class="box pad" style="text-align:center"><div class="av" style="margin:auto;width:80px;height:80px"></div><br><button class="btn" title="Cambiar foto de perfil" onclick="op('Cambiar avatar',f('Archivo','','file'))">Cambiar avatar</button><h3 style="color:var(--g);margin:6px">${esc(primero)}</h3>${esc(resto)}<p>Edad ${u.edad??''} · C.I. ${esc(u.dni)}<br>Tipo Usuario <span class="pill" style="background:${col}">${esc(u.tipo_usuario)}</span></p><button class="btn y" style="width:100%" title="Cambiar la contraseña" onclick="cambiarPass()">Cambiar password</button><button class="btn b" style="width:100%;margin-top:8px" title="Activar o cancelar la edición de datos personales" onclick="toggleEdicion()">${edicionActiva?'Cancelar edición':'Activar edición'}</button><div style="text-align:left;margin-top:12px"><small><b>Teléfono:</b> ${esc(u.telefono??'—')}<br><b>Residencia:</b> ${esc(u.residencia??'—')}<br><b>Correo:</b> ${esc(u.correo??'—')}<br><b>Sexo:</b> ${esc(u.sexo??'—')}<br><b>Info:</b> ${esc(u.info_adicional??'—')}</small></div></div><div class="box" style="grid-column:span 2"><div class="bar">Editar datos personales</div><div class="pad"><label>Teléfono</label><input id="dt-tel" value="${esc(u.telefono??'')}" placeholder="325465"${edicionActiva?'':' disabled'}><label>Residencia</label><input id="dt-res" value="${esc(u.residencia??'')}" placeholder="Trujillo/Libertad/Perú"${edicionActiva?'':' disabled'}><label>Correo</label><input id="dt-correo" value="${esc(u.correo??'')}" placeholder="Correo"${edicionActiva?'':' disabled'}><label>Sexo</label><input id="dt-sexo" value="${esc(u.sexo??'')}" placeholder="Masculino"${edicionActiva?'':' disabled'}><label>Información adicional</label><textarea id="dt-info" rows="4"${edicionActiva?'':' disabled'}>${esc(u.info_adicional??'')}</textarea><br><br><button class="btn g" style="width:100%" title="Guardar datos personales" onclick="guardarDatos()"${edicionActiva?'':' disabled'}>Guardar</button></div></div></div>`;
+},
+bd:()=>`<h1>Modelo de datos inferido</h1><p style="color:var(--mut);max-width:70ch">Tablas deducidas de los formularios y listados de las capturas. <span class="pk">PK</span> clave primaria, <span class="fk">FK</span> clave foránea. Los tipos de columna son decisión tuya.</p><div class="er">${Object.entries(er).map(([t,c])=>`<div class="box"><div class="bar">${t}</div><table>${c.map(x=>`<tr><td>${x[0]}</td><td class="${x[1]=="PK"?"pk":x[1].startsWith("FK")?"fk":""}">${x[1]}</td></tr>`).join("")}</table></div>`).join("")}</div><br><div class="box pad"><b>Relaciones:</b> laboratorio, tipo y presentación 1—N producto · producto 1—N lote · proveedor 1—N lote · usuario 1—N venta · venta 1—N detalle_venta · lote 1—N detalle_venta.<br><b>Reglas visibles:</b> IGV 18% (3.69 + 0.81 = 4.50) · el stock se descuenta del lote · los lotes se colorean según cercanía al vencimiento (rojo vencido, amarillo por vencer) · roles Root, Administrador y Técnico con ascenso/descenso.</div>`};
+function go(v){cur=v;edicionActiva=false;const d=document.getElementById('cartdrop');if(d)d.classList.remove('on');draw()}
+function logout(){ses=null;try{sessionStorage.removeItem('ses')}catch(e){}resumenDb=null;go('login')}
+function draw(){
+  if(!ses){
+    cur="login";
+    $("#nav").innerHTML='<h3>Farmacia</h3><a class="on" title="Ingresar al sistema">Inicio de sesión</a>';
+    $("#main").innerHTML=V.login();const cf0=document.getElementById('cartfab');if(cf0)cf0.style.display="none";scrollTo(0,0);return;
+  }
+  $("#nav").innerHTML='<h3>Farmacia</h3>'+menu.filter(m=>m[0]!=="login"&&!(m[0]==="usuarios"&&ses&&ses.tipo_usuario==="Técnico")).map(m=>m[1]?`<a class="${m[0]==cur?"on":""}" title="Ir a ${m[1]}" onclick="go('${m[0]}')">${m[1]}</a>`:`<small>${m[0]}</small>`).join("")+'<small>Sesión</small><a title="Cerrar la sesión actual" onclick="logout()">Cerrar sesión</a>';
+  if(!V[cur])cur="catalogo";
+  $("#main").innerHTML=V[cur]();paintCartFab();
+  const cf=document.getElementById('cartfab'),cd=document.getElementById('cartdrop');
+  if(cf)cf.style.display=ses?"":"none";
+  if(!ses&&cd)cd.classList.remove('on');
+  scrollTo(0,0);
+}
+(async()=>{await cargarDatos();draw();})();
+</script></body></html>

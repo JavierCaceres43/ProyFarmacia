@@ -1,0 +1,20 @@
+# Dependencias Node
+api_lubricantes/node_modules/
+
+# Compilado TypeScript
+api_lubricantes/dist/
+
+# Variables de entorno (contienen contraseñas: NO subir)
+api_lubricantes/.env
+
+# Imágenes subidas desde la app (logos de laboratorio, avatares)
+api_lubricantes/public/logos/
+api_lubricantes/public/avatar/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operativo
+Thumbs.db
+.DS_Store
