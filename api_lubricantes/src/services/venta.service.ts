@@ -23,7 +23,7 @@ export async function obtenerVentaPorCodigo(codigo: number) {
   const cab = await db.request()
     .input("codigo", sql.Int, codigo)
     .query(`
-      SELECT v.codigo, v.fecha, v.cliente, v.dni_cliente, v.total, v.usuario_dni, u.nombre AS vendedor, v.estado
+      SELECT v.codigo, v.fecha, v.cliente, v.dni_cliente, v.total, v.usuario_dni, v.comprobante, u.nombre AS vendedor, v.estado
       FROM dbo.venta v
       INNER JOIN dbo.usuario u ON u.dni = v.usuario_dni
       WHERE v.codigo = @codigo AND v.estado = 1;
@@ -87,10 +87,11 @@ export async function crearVenta(body: Record<string, unknown>) {
       .input("cliente", sql.NVarChar(150), cliente)
       .input("dni_cliente", sql.NVarChar(20), body.dni_cliente ? String(body.dni_cliente) : null)
       .input("usuario_dni", sql.NVarChar(20), usuario_dni)
+      .input("comprobante", sql.NVarChar(255), body.comprobante ? String(body.comprobante) : null)
       .query(`
-        INSERT INTO dbo.venta (fecha, cliente, dni_cliente, total, usuario_dni, estado)
+        INSERT INTO dbo.venta (fecha, cliente, dni_cliente, total, usuario_dni, comprobante, estado)
         OUTPUT INSERTED.codigo
-        VALUES (DATEADD(HOUR, -4, SYSUTCDATETIME()), @cliente, @dni_cliente, 0, @usuario_dni, 1);
+        VALUES (DATEADD(HOUR, -4, SYSUTCDATETIME()), @cliente, @dni_cliente, 0, @usuario_dni, @comprobante, 1);
       `);
     const codigo: number = ins.recordset[0].codigo;
     let total = 0;

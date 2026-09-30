@@ -10,6 +10,7 @@ api_lubricantes/.env
 # Imágenes subidas desde la app (logos de laboratorio, avatares)
 api_lubricantes/public/logos/
 api_lubricantes/public/avatar/
+api_lubricantes/public/comprobantes/
 
 # Logs
 *.log

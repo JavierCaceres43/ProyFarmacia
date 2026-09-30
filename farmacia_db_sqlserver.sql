@@ -170,6 +170,7 @@ CREATE TABLE dbo.venta (
     dni_cliente NVARCHAR(20) NULL,
     total DECIMAL(10,2) NOT NULL,
     usuario_dni NVARCHAR(20) NOT NULL,
+    comprobante NVARCHAR(255) NULL,
     estado BIT NOT NULL DEFAULT 1, -- 1 vigente, 0 anulada
 
     CONSTRAINT pk_venta PRIMARY KEY (codigo),

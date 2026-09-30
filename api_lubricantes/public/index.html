@@ -63,7 +63,7 @@ let labDb=[],tipoDb=[],presDb=[],cart=[],ses=null,apiOk=false;
 let prodQuery='',catQuery='',loteQuery='',provQuery='',userQuery='',ventaQuery='';
 let riesgoAbierto=true;
 function toggleRiesgo(){riesgoAbierto=!riesgoAbierto;draw();}
-let metodoPago=null,pagoQR=false,ingresoVal='';
+let metodoPago=null,pagoQR=false,ingresoVal='',comprobanteQR=null;
 function totalCarrito(){return cart.reduce((a,c)=>{const p=prodsDb.find(x=>x.id_producto===c.id_producto);return a+(p?Number(p.precio_unidad)*c.cantidad:0)},0);}
 let edicionActiva=false;
 function toggleEdicion(){edicionActiva=!edicionActiva;draw();}
@@ -171,8 +171,8 @@ async function realizarCompra(){
   if(!metodoPago){alert('Seleccione el método de pago.');return;}
   if(metodoPago==='qr'&&!pagoQR){alert('Confirme el pago por QR.');return;}
   try{
-    const v=await api('/ventas',{method:'POST',body:JSON.stringify({cliente,dni_cliente:dn||null,usuario_dni:(ses&&ses.dni)||'12345',items:cart})});
-    cart=[];metodoPago=null;pagoQR=false;ingresoVal='';paintCartFab();await buscarVenta('');alert('Venta registrada. Código: '+v.codigo);go('ventas');
+    const v=await api('/ventas',{method:'POST',body:JSON.stringify({cliente,dni_cliente:dn||null,usuario_dni:(ses&&ses.dni)||'12345',items:cart,comprobante:comprobanteQR})});
+    cart=[];metodoPago=null;pagoQR=false;ingresoVal='';comprobanteQR=null;paintCartFab();await buscarVenta('');alert('Venta registrada. Código: '+v.codigo);go('ventas');
   }catch(e){alert(e.message);}
 }
 function calcCompra(){
@@ -266,7 +266,7 @@ async function det(codigo){
   if(codigo===undefined||codigo===null){op('Registro de venta 56','<p><b>Fecha:</b> 2020-07-29 13:52:17<br><b>Cliente:</b> fernando · <b>C.I.:</b> 0<br><b>Vendedor:</b> Juan diego Polo Cosme</p><div class="tw"><table><tr><th>Cant.</th><th>Precio</th><th>Producto</th><th>Subtotal</th></tr><tr><td>1</td><td>2</td><td>A FOLIC 0.5 mg</td><td>1.5</td></tr><tr><td>1</td><td>2</td><td>AB AMBROMOX 600 mg</td><td>2</td></tr><tr><td>1</td><td>1</td><td>AB AMBROMOX 1 200 mg</td><td>1</td></tr></table></div><h3 style="text-align:right">Total: 4.5</h3>');return;}
   try{
     const v=await api('/ventas/'+codigo);
-    op('Registro de venta '+v.codigo,`<p><b>Fecha:</b> ${fmtFecha(v.fecha)}<br><b>Cliente:</b> ${esc(v.cliente)} · <b>C.I.:</b> ${esc(v.dni_cliente??'')}<br><b>Vendedor:</b> ${esc(v.vendedor)}</p><div class="tw"><table><tr><th>Cant.</th><th>Precio</th><th>Producto</th><th>Subtotal</th></tr>${v.items.map(i=>`<tr><td>${i.cantidad}</td><td>Bs ${money(i.precio)}</td><td>${esc(i.producto)}${i.detalle&&i.detalle.trim()?' '+esc(i.detalle.trim()):''}</td><td>Bs ${money(i.subtotal)}</td></tr>`).join('')}</table></div><h3 style="text-align:right">Total: Bs ${money(v.total)}</h3>`);
+    op('Registro de venta '+v.codigo,`<p><b>Fecha:</b> ${fmtFecha(v.fecha)}<br><b>Cliente:</b> ${esc(v.cliente)} · <b>C.I.:</b> ${esc(v.dni_cliente??'')}<br><b>Vendedor:</b> ${esc(v.vendedor)}</p><div class="tw"><table><tr><th>Cant.</th><th>Precio</th><th>Producto</th><th>Subtotal</th></tr>${v.items.map(i=>`<tr><td>${i.cantidad}</td><td>Bs ${money(i.precio)}</td><td>${esc(i.producto)}${i.detalle&&i.detalle.trim()?' '+esc(i.detalle.trim()):''}</td><td>Bs ${money(i.subtotal)}</td></tr>`).join('')}</table></div><h3 style="text-align:right">Total: Bs ${money(v.total)}</h3>${v.comprobante?'<p><a href="/comprobantes/'+esc(v.comprobante)+'" target="_blank">Ver comprobante de pago</a></p>':''}`);
   }catch(e){alert(e.message);}
 }
 async function anularVenta(c){
@@ -476,24 +476,25 @@ document.addEventListener('click',e=>{
   b.classList.remove('flash');void b.offsetWidth;b.classList.add('flash');
   setTimeout(()=>b.classList.remove('flash'),400);
 });
-function metodoPagoModal(){
-  op('Método de pago','<div style="display:grid;gap:10px"><button class="btn g" title="Pagar en efectivo" onclick="setMetodo(\'efectivo\')">Efectivo</button><button class="btn c" title="Pagar por QR" onclick="setMetodo(\'qr\')">QR</button></div>');
-}
-function setMetodo(m){
-  metodoPago=m;pagoQR=false;ingresoVal='';
-  cl();
-  if(m==='qr'){qrModal();return;}
-  draw();
-}
 function qrModal(){
   const t=totalCarrito();
-  op('Pago por QR','<div style="text-align:center"><img src="/qr-pago.png" onerror="this.onerror=null;this.src=\'/qr-pago.svg\'" style="width:220px;height:220px;object-fit:contain;border:1px solid var(--bd)"><h3>¿Se realizó el pago por QR?</h3><p>Total: Bs '+money(t)+'</p><button class="btn g" title="Confirmar pago" onclick="confirmarQR(true)">Sí, se realizó</button> <button class="btn k" title="Cancelar" onclick="confirmarQR(false)">No</button></div>');
+  op('Pago por QR','<div style="text-align:center"><img src="/qr-pago.png" onerror="this.onerror=null;this.src=\'/qr-pago.svg\'" style="width:220px;height:220px;object-fit:contain;border:1px solid var(--bd)"><h3>¿Se realizó el pago por QR?</h3><p>Total: Bs '+money(t)+'</p></div><label>Comprobante de pago (opcional)</label><input type="file" id="qr-file" accept="image/*"><div class="pad" style="text-align:right"><button class="btn g" title="Confirmar pago" onclick="confirmarQR(true)">Sí, se realizó</button> <button class="btn k" title="Cancelar" onclick="confirmarQR(false)">No</button></div>');
 }
-function confirmarQR(ok){
-  if(!ok){metodoPago=null;pagoQR=false;cl();draw();return;}
-  pagoQR=true;
-  ingresoVal=totalCarrito().toFixed(2);
-  cl();draw();calcCompra();
+async function confirmarQR(ok){
+  if(!ok){metodoPago=null;pagoQR=false;comprobanteQR=null;cl();draw();return;}
+  try{
+    const inp=document.getElementById('qr-file');
+    if(inp&&inp.files&&inp.files[0]){
+      const fd=new FormData();fd.append('comprobante',inp.files[0]);
+      const r=await fetch('/api/comprobantes',{method:'POST',body:fd});
+      let j=null;try{j=await r.json()}catch{}
+      if(!r.ok||!j||!j.ok)throw new Error((j&&j.message)||('Error '+r.status));
+      comprobanteQR=j.data.archivo;
+    }else{comprobanteQR=null;}
+    pagoQR=true;metodoPago='qr';
+    ingresoVal=totalCarrito().toFixed(2);
+    cl();draw();calcCompra();
+  }catch(e){alert(e.message);}
 }
 const V={
 login:()=>`<div class="login"><form onsubmit="doLogin();return false"><div class="av" style="margin:0 auto 8px"></div><h1>FARMACIA</h1><label>Nombre</label><input id="lg-nombre" placeholder="Nombre" autocomplete="off"><label>Contraseña</label><input id="lg-pass" type="password" placeholder="Contraseña"><br><button class="btn g" style="width:100%;border-radius:20px" title="Ingresar al sistema">INICIAR SESIÓN</button></form></div>`,
@@ -506,7 +507,7 @@ catalogo:()=>{
   +`<div class="box"><div class="bar">Buscar producto</div><div class="pad"><input id="q-cat" placeholder="Ingrese nombre de producto" autocomplete="off" value="${esc(catQuery)}" oninput="buscarCatLive(this.value)" onkeydown="if(event.key==='Enter')buscarCat(this.value)"></div></div><div class="grid">${cards||'<div class="box pad">Sin productos.</div>'}</div>`;
 },
 compra:()=>{const det=cart.map((c,i)=>{const p=prodsDb.find(x=>x.id_producto===c.id_producto);return{i,p,cant:c.cantidad}}).filter(x=>x.p);const s=det.reduce((a,x)=>a+Number(x.p.precio_unidad)*x.cant,0);return`<h1>Compra</h1>${apiOk?'':'<div class="box pad">Sin conexión al API: no se puede registrar la compra.</div>'}<div class="box pad"><h2 style="text-align:center">SOLICITUD DE COMPRA</h2><div class="r2"><div><label>Cliente</label><input id="cp-cli" placeholder="Ingrese nombre" autocomplete="off"></div><div><label>C.I.</label><input id="cp-dni" placeholder="Ingrese C.I." autocomplete="off" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')"></div></div><p><b style="color:var(--g)">Vendedor:</b> ${esc((ses&&ses.nombre)||'Juan diego')}</p></div><div class="box tw"><table><tr><th>Nombre</th><th>Concentración</th><th>Adicional</th><th>Presentación</th><th>Cantidad</th><th>Sub total</th><th></th></tr>${det.map(x=>`<tr><td>${esc(x.p.nombre)}</td><td>${esc(x.p.concentracion??'')}</td><td>${esc(x.p.adicional??'')}</td><td>${esc(x.p.presentacion)}</td><td><input type="number" value="${x.cant}" min="1" style="width:70px" onchange="setCant(${x.i},this.value)"><br><small>${cantTxt(x.cant,x.p)}</small></td><td>Bs ${money(Number(x.p.precio_unidad)*x.cant)}</td><td>${btns(["r","✕",`quitarCart(${x.i})`,"Quitar del carrito"])}</td></tr>`).join("")}</table></div>
-<div class="r2"><div><div class="kpi" style="background:#e0a800"><small>SUB TOTAL</small><b id="cp-sub">Bs ${money(s/1.18)}</b></div><br><div class="kpi" style="background:#e0a800"><small>IGV (18%)</small><b id="cp-igv">Bs ${money(s-s/1.18)}</b></div></div><div><div class="kpi" style="background:var(--c)"><small>TOTAL</small><b id="cp-tot">Bs ${money(s)}</b></div></div><div><div class="kpi" style="background:var(--g)"><small>INGRESO</small><input id="cp-ing" placeholder="Ingrese dinero" value="${ingresoVal}" oninput="ingresoVal=this.value;calcCompra()"${metodoPago==='efectivo'?'':' disabled'}></div><br><div class="kpi" style="background:var(--c)"><small>VUELTO</small><b id="cp-vue">Bs ${money(-s)}</b></div></div></div><br><button class="btn" title="Volver al catálogo" onclick="go('catalogo')">Seguir comprando</button> <button class="btn y" id="cp-metodo" title="Elegir método de pago" onclick="metodoPagoModal()">${metodoPago==='efectivo'?'Método: Efectivo':metodoPago==='qr'?'Método: QR':'Método de pago'}</button> <button class="btn g" title="Registrar la venta y descontar stock" onclick="realizarCompra()">Realizar compra</button>`},
+<div class="r2"><div><div class="kpi" style="background:#e0a800"><small>SUB TOTAL</small><b id="cp-sub">Bs ${money(s/1.18)}</b></div><br><div class="kpi" style="background:#e0a800"><small>IGV (18%)</small><b id="cp-igv">Bs ${money(s-s/1.18)}</b></div></div><div><div class="kpi" style="background:var(--c)"><small>TOTAL</small><b id="cp-tot">Bs ${money(s)}</b></div></div><div><div class="kpi" style="background:var(--g)"><small>INGRESO</small><input id="cp-ing" placeholder="Ingrese dinero" value="${ingresoVal}" disabled></div><br><div class="kpi" style="background:var(--c)"><small>VUELTO</small><b id="cp-vue">Bs ${money(-s)}</b></div></div></div><br><button class="btn" title="Volver al catálogo" onclick="go('catalogo')">Seguir comprando</button> <button class="btn y" id="cp-metodo" title="Pagar por QR" onclick="qrModal()">${metodoPago==='qr'?'Método: QR':'Método de pago'}</button> <button class="btn g" title="Registrar la venta y descontar stock" onclick="realizarCompra()">Realizar compra</button>`},
 ventas:()=>{
   const r=resumenDb||{dia_vendedor:4.5,total_dia:4.5,mensual:35,anual:329};
   const rows=apiOk
