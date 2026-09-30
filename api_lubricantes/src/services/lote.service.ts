@@ -10,10 +10,12 @@ const SELECT_BASE = `
     l.fecha_vencimiento,
     p.nombre AS producto,
     p.avatar AS producto_avatar,
+    lab.nombre AS laboratorio,
     pr.nombre AS proveedor,
     l.estado
   FROM dbo.lote l
   INNER JOIN dbo.producto p ON p.id_producto = l.id_producto
+  INNER JOIN dbo.laboratorio lab ON lab.id_laboratorio = p.id_laboratorio
   INNER JOIN dbo.proveedor pr ON pr.id_proveedor = l.id_proveedor
 `;
 
