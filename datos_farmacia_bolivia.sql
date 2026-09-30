@@ -51,11 +51,11 @@ INSERT INTO dbo.producto(nombre, concentracion, adicional, precio, unidades_por_
 GO
 
 -- Proveedores bolivianos (ids nuevos: 5 al 8 en orden).
-INSERT INTO dbo.proveedor(nombre, telefono, correo, direccion) VALUES
-(N'Droguería INTI', N'71712345', N'ventas@inti.bo', N'Av. América, Cochabamba'),
-(N'Distribuidora San Juan', N'76754321', N'info@sanjuan.bo', N'Av. Grigotá, Santa Cruz'),
-(N'Droguería La Paz', N'70198765', N'contacto@dlapaz.bo', N'Calle Comercio, La Paz'),
-(N'Distribuidora Cochabamba', N'77456321', N'pedidos@dcbba.bo', N'Av. Heroínas, Cochabamba');
+INSERT INTO dbo.proveedor(nombre, telefono, correo, direccion, id_laboratorio) VALUES
+(N'Droguería INTI', N'71712345', N'ventas@inti.bo', N'Av. América, Cochabamba', 11),
+(N'Distribuidora San Juan', N'76754321', N'info@sanjuan.bo', N'Av. Grigotá, Santa Cruz', 12),
+(N'Droguería La Paz', N'70198765', N'contacto@dlapaz.bo', N'Calle Comercio, La Paz', 13),
+(N'Distribuidora Cochabamba', N'77456321', N'pedidos@dcbba.bo', N'Av. Heroínas, Cochabamba', 14);
 GO
 
 -- Usuarios bolivianos (password = dni).

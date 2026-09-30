@@ -136,8 +136,8 @@ function toggleCart(force){
   const d=document.getElementById('cartdrop');if(!d)return;
   const show=force!==undefined?force:!d.classList.contains('on');
   if(show){
-    const rows=cart.map((c,i)=>{const p=prodsDb.find(x=>x.id_producto===c.id_producto);if(!p)return '';return '<tr><td>'+p.id_producto+'</td><td>'+esc(p.nombre)+'</td><td>'+esc(p.concentracion)+'</td><td>'+esc(p.adicional)+'</td><td>Bs '+money(p.precio)+'</td><td><button class="btn r" title="Quitar del carrito" onclick="quitarCartDrop('+i+')">✕</button></td></tr>'}).join('');
-    d.innerHTML='<div class="tw"><table><tr><th>Codigo</th><th>Nombre</th><th>Concentracion</th><th>Adicional</th><th>Precio</th><th>Eliminar</th></tr>'+(rows||'<tr><td colspan="6">Carrito vacío.</td></tr>')+'</table></div><div class="pad"><button class="btn r full" title="Ir a la solicitud de compra" onclick="go(\'compra\')">Procesar Compra</button><button class="btn full" title="Vaciar el carrito" onclick="vaciarCarrito()">Vaciar carrito</button></div>';
+    const rows=cart.map((c,i)=>{const p=prodsDb.find(x=>x.id_producto===c.id_producto);if(!p)return '';return '<tr><td>'+p.id_producto+'</td><td>'+esc(p.nombre)+'</td><td>'+esc(p.concentracion)+'</td><td>'+esc(p.adicional)+'</td><td>'+c.cantidad+'</td><td>Bs '+money(c.cantidad*Number(p.precio_unidad))+'</td><td><button class="btn r" title="Quitar del carrito" onclick="quitarCartDrop('+i+')">✕</button></td></tr>'}).join('');
+    d.innerHTML='<div class="tw"><table><tr><th>Codigo</th><th>Nombre</th><th>Concentracion</th><th>Adicional</th><th>Cantidad</th><th>Precio</th><th>Eliminar</th></tr>'+(rows||'<tr><td colspan="7">Carrito vacío.</td></tr>')+'</table></div><div class="pad"><button class="btn r full" title="Ir a la solicitud de compra" onclick="go(\'compra\')">Procesar Compra</button><button class="btn full" title="Vaciar el carrito" onclick="vaciarCarrito()">Vaciar carrito</button></div>';
   }
   d.classList.toggle('on',show);
 }
@@ -288,18 +288,23 @@ async function eliminarAtr(id){
   if(!confirm('¿Eliminar este registro?'))return;
   try{await api('/atributos/'+tab.toLowerCase()+'/'+id,{method:'DELETE'});await recargarAtrs();}catch(e){alert(e.message);}
 }
+function optsLab(sel){
+  const lista=apiOk?labDb.map(l=>({id:l.id,nombre:l.nombre})):attrs.Laboratorio.map((n,i)=>({id:'',nombre:n}));
+  return `<option value="">— Ninguno —</option>`+lista.map(l=>`<option value="${l.id}"${sel&&Number(sel)===Number(l.id)?' selected':''}>${esc(l.nombre)}</option>`).join('');
+}
 function crearProv(){
-  op('Crear proveedor',`<label>Nombres</label><input id="pv-nombre" placeholder="Ingrese nombre"><label>Teléfono</label><input id="pv-tel" placeholder="Ingrese teléfono"><label>Correo</label><input id="pv-correo" placeholder="Ingrese correo"><label>Dirección</label><input id="pv-dir" placeholder="Ingrese dirección">`);
+  op('Crear proveedor',`<label>Nombres</label><input id="pv-nombre" placeholder="Ingrese nombre"><label>Teléfono</label><input id="pv-tel" placeholder="Ingrese teléfono"><label>Correo</label><input id="pv-correo" placeholder="Ingrese correo"><label>Dirección</label><input id="pv-dir" placeholder="Ingrese dirección"><label>Laboratorio que distribuye</label><select id="pv-lab">${optsLab()}</select>`);
   $('#mSave').onclick=guardarProv;
 }
 function editarProv(id){
   const p=provsDb.find(x=>x.id_proveedor===id);if(!p)return;
-  op('Editar proveedor',`<input type="hidden" id="pv-id" value="${p.id_proveedor}"><label>Nombres</label><input id="pv-nombre" value="${esc(p.nombre)}" placeholder="Ingrese nombre"><label>Teléfono</label><input id="pv-tel" value="${esc(p.telefono??'')}" placeholder="Ingrese teléfono"><label>Correo</label><input id="pv-correo" value="${esc(p.correo??'')}" placeholder="Ingrese correo"><label>Dirección</label><input id="pv-dir" value="${esc(p.direccion??'')}" placeholder="Ingrese dirección">`);
+  op('Editar proveedor',`<input type="hidden" id="pv-id" value="${p.id_proveedor}"><label>Nombres</label><input id="pv-nombre" value="${esc(p.nombre)}" placeholder="Ingrese nombre"><label>Teléfono</label><input id="pv-tel" value="${esc(p.telefono??'')}" placeholder="Ingrese teléfono"><label>Correo</label><input id="pv-correo" value="${esc(p.correo??'')}" placeholder="Ingrese correo"><label>Dirección</label><input id="pv-dir" value="${esc(p.direccion??'')}" placeholder="Ingrese dirección"><label>Laboratorio que distribuye</label><select id="pv-lab">${optsLab(p.id_laboratorio)}</select>`);
   $('#mSave').onclick=guardarProv;
 }
 async function guardarProv(){
   const id=$('#pv-id')?$('#pv-id').value:'';
-  const body={nombre:$('#pv-nombre').value.trim(),telefono:$('#pv-tel').value.trim()||null,correo:$('#pv-correo').value.trim()||null,direccion:$('#pv-dir').value.trim()||null};
+  const labVal=$('#pv-lab')?$('#pv-lab').value:'';
+  const body={nombre:$('#pv-nombre').value.trim(),telefono:$('#pv-tel').value.trim()||null,correo:$('#pv-correo').value.trim()||null,direccion:$('#pv-dir').value.trim()||null,id_laboratorio:labVal===''||labVal===null?null:Number(labVal)};
   if(!body.nombre){alert('Ingrese el nombre.');return;}
   try{
     await api(id?'/proveedores/'+id:'/proveedores',{method:id?'PUT':'POST',body:JSON.stringify(body)});
@@ -511,7 +516,7 @@ atributo:()=>{
 },
 proveedor:()=>{
   const cards=apiOk
-    ?provsDb.map(p=>`<div class="card"><div><span class="pill" style="background:var(--g)">Proveedor</span><br><b>${esc(p.nombre)}</b><br><small>Dirección: ${esc(p.direccion??'')}<br>Teléfono #: ${esc(p.telefono??'')}<br>Correo #: ${esc(p.correo??'')}</small>${btns(["c","🖼",`avatarProv(${p.id_proveedor})`,"Cambiar avatar"],["g","✎",`editarProv(${p.id_proveedor})`,"Editar proveedor"],["r","✕",`eliminarProv(${p.id_proveedor})`,"Eliminar proveedor"])}</div>${avatarCellP(p.avatar)}</div>`).join('')
+    ?provsDb.map(p=>`<div class="card"><div><span class="pill" style="background:var(--g)">Proveedor</span><br><b>${esc(p.nombre)}</b><br><small>Dirección: ${esc(p.direccion??'')}<br>Teléfono #: ${esc(p.telefono??'')}<br>Correo #: ${esc(p.correo??'')}<br>Laboratorio: ${esc(p.laboratorio??'—')}</small>${btns(["c","🖼",`avatarProv(${p.id_proveedor})`,"Cambiar avatar"],["g","✎",`editarProv(${p.id_proveedor})`,"Editar proveedor"],["r","✕",`eliminarProv(${p.id_proveedor})`,"Eliminar proveedor"])}</div>${avatarCellP(p.avatar)}</div>`).join('')
     :provs.map(p=>`<div class="card"><div><span class="pill" style="background:var(--g)">Proveedor</span><br><b>${p[0]}</b><br><small>Dirección: ${p[3]}<br>Teléfono #: ${p[1]}<br>Correo #: ${p[2]}</small>${btns(["c","🖼","","Cambiar avatar"],["g","✎","","Editar proveedor"],["r","✕","","Eliminar proveedor"])}</div><div class="av"></div></div>`).join('');
   return `<h1>Gestión proveedor <button class="btn" title="Crear un nuevo proveedor" onclick="crearProv()">Crear proveedor</button></h1>`
     +(apiOk?'':'<div class="box pad">Sin conexión al API: mostrando datos de ejemplo.</div>')

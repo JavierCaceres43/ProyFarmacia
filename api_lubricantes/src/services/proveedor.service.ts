@@ -4,13 +4,16 @@ import { getPool } from "../config/database";
 export async function obtenerProveedores(q?: string) {
   const db = await getPool();
   const request = db.request();
-  let query = `SELECT id_proveedor, nombre, telefono, correo, direccion, avatar, estado
-               FROM dbo.proveedor WHERE estado = 1`;
+  let query = `SELECT pr.id_proveedor, pr.nombre, pr.telefono, pr.correo, pr.direccion, pr.avatar,
+                      pr.id_laboratorio, l.nombre AS laboratorio, pr.estado
+               FROM dbo.proveedor pr
+               LEFT JOIN dbo.laboratorio l ON l.id_laboratorio = pr.id_laboratorio
+               WHERE pr.estado = 1`;
   if (q) {
     request.input("q", sql.NVarChar(100), `%${q}%`);
-    query += ` AND (nombre LIKE @q OR CAST(id_proveedor AS nvarchar(30)) LIKE @q)`;
+    query += ` AND (pr.nombre LIKE @q OR CAST(pr.id_proveedor AS nvarchar(30)) LIKE @q)`;
   }
-  query += ` ORDER BY nombre;`;
+  query += ` ORDER BY pr.nombre;`;
   const result = await request.query(query);
   return result.recordset;
 }
@@ -19,24 +22,40 @@ export async function obtenerProveedorPorId(id: number) {
   const db = await getPool();
   const result = await db.request()
     .input("id_proveedor", sql.Int, id)
-    .query(`SELECT id_proveedor, nombre, telefono, correo, direccion, avatar, estado
-            FROM dbo.proveedor WHERE id_proveedor = @id_proveedor AND estado = 1;`);
+    .query(`SELECT pr.id_proveedor, pr.nombre, pr.telefono, pr.correo, pr.direccion, pr.avatar,
+                   pr.id_laboratorio, l.nombre AS laboratorio, pr.estado
+            FROM dbo.proveedor pr
+            LEFT JOIN dbo.laboratorio l ON l.id_laboratorio = pr.id_laboratorio
+            WHERE pr.id_proveedor = @id_proveedor AND pr.estado = 1;`);
   return result.recordset[0] ?? null;
+}
+
+async function validarLaboratorio(db: sql.ConnectionPool, id_laboratorio: unknown) {
+  if (id_laboratorio === undefined || id_laboratorio === null || id_laboratorio === "") return null;
+  const id = Number(id_laboratorio);
+  if (!Number.isInteger(id) || id < 1) fail("Laboratorio inválido.", 400);
+  const r = await db.request()
+    .input("id_lab", sql.Int, id)
+    .query(`SELECT id_laboratorio FROM dbo.laboratorio WHERE id_laboratorio = @id_lab AND estado = 1;`);
+  if (r.recordset.length === 0) fail("El laboratorio no existe o está inactivo.", 400);
+  return id;
 }
 
 export async function crearProveedor(body: Record<string, unknown>) {
   if (!body.nombre || String(body.nombre).trim() === "")
     fail("El nombre del proveedor es obligatorio.", 400);
   const db = await getPool();
+  const idLab = await validarLaboratorio(db, body.id_laboratorio);
   const result = await db.request()
     .input("nombre", sql.NVarChar(150), String(body.nombre).trim())
     .input("telefono", sql.NVarChar(30), body.telefono ? String(body.telefono) : null)
     .input("correo", sql.NVarChar(150), body.correo ? String(body.correo) : null)
     .input("direccion", sql.NVarChar(200), body.direccion ? String(body.direccion) : null)
+    .input("id_laboratorio", sql.Int, idLab)
     .query(`
-      INSERT INTO dbo.proveedor (nombre, telefono, correo, direccion, estado)
+      INSERT INTO dbo.proveedor (nombre, telefono, correo, direccion, id_laboratorio, estado)
       OUTPUT INSERTED.id_proveedor
-      VALUES (@nombre, @telefono, @correo, @direccion, 1);
+      VALUES (@nombre, @telefono, @correo, @direccion, @id_laboratorio, 1);
     `);
   return obtenerProveedorPorId(result.recordset[0].id_proveedor);
 }
@@ -45,15 +64,18 @@ export async function actualizarProveedor(id: number, body: Record<string, unkno
   if (!body.nombre || String(body.nombre).trim() === "")
     fail("El nombre del proveedor es obligatorio.", 400);
   const db = await getPool();
+  const idLab = await validarLaboratorio(db, body.id_laboratorio);
   const result = await db.request()
     .input("id_proveedor", sql.Int, id)
     .input("nombre", sql.NVarChar(150), String(body.nombre).trim())
     .input("telefono", sql.NVarChar(30), body.telefono ? String(body.telefono) : null)
     .input("correo", sql.NVarChar(150), body.correo ? String(body.correo) : null)
     .input("direccion", sql.NVarChar(200), body.direccion ? String(body.direccion) : null)
+    .input("id_laboratorio", sql.Int, idLab)
     .query(`
       UPDATE dbo.proveedor
-      SET nombre = @nombre, telefono = @telefono, correo = @correo, direccion = @direccion
+      SET nombre = @nombre, telefono = @telefono, correo = @correo, direccion = @direccion,
+          id_laboratorio = @id_laboratorio
       WHERE id_proveedor = @id_proveedor AND estado = 1;
     `);
   if (result.rowsAffected[0] === 0) return null;

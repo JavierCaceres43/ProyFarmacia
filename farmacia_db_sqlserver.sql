@@ -100,9 +100,12 @@ CREATE TABLE dbo.proveedor (
     correo NVARCHAR(150) NULL,
     direccion NVARCHAR(200) NULL,
     avatar NVARCHAR(255) NULL,
+    id_laboratorio INT NULL,
     estado BIT NOT NULL DEFAULT 1,
 
     CONSTRAINT pk_proveedor PRIMARY KEY (id_proveedor),
+    CONSTRAINT fk_proveedor_laboratorio
+        FOREIGN KEY (id_laboratorio) REFERENCES dbo.laboratorio(id_laboratorio),
     CONSTRAINT ck_proveedor_nombre CHECK (LEN(LTRIM(RTRIM(nombre))) > 0)
 );
 GO
