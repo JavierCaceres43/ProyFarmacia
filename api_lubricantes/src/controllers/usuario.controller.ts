@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import * as service from "../services/usuario.service";
+import fs from "fs";
+import path from "path";
 
 export async function listar(req: Request, res: Response, next: NextFunction) {
   try {
@@ -40,10 +42,28 @@ export async function cambiarTipo(req: Request, res: Response, next: NextFunctio
   } catch (e) { next(e); }
 }
 
+export async function subirAvatar(req: Request, res: Response, next: NextFunction) {
+  try {
+    const archivo = (req as any).file as { filename: string } | undefined;
+    if (!archivo)
+      return res.status(400).json({ ok: false, message: "Debe seleccionar un archivo de imagen", data: null, errors: [] });
+    const data = await service.actualizarAvatar(String(req.params.dni), archivo.filename);
+    if (!data) return res.status(404).json({ ok: false, message: "Usuario no encontrado", data: null, errors: [] });
+    if (data.anterior && data.anterior !== archivo.filename) {
+      try { await fs.promises.unlink(path.join(avatarsDir(), data.anterior)); }
+      catch { /* ignorar: el archivo viejo puede no existir */ }
+    }
+    res.json({ ok: true, message: "Avatar actualizado correctamente", data: { dni: data.dni, avatar: data.avatar }, errors: [] });
+  } catch (e) { next(e); }
+}
+
+export function avatarsDir() {
+  return path.join(__dirname, "..", "..", "public", "avatar");
+}
+
 export async function eliminar(req: Request, res: Response, next: NextFunction) {
   try {
-    const ok = await service.eliminarUsuario(String(req.params.dni));
-    if (!ok) return res.status(404).json({ ok: false, message: "Usuario no encontrado", data: null, errors: [] });
+    await service.eliminarUsuario(String(req.params.dni));
     res.json({ ok: true, message: "Usuario eliminado correctamente", data: null, errors: [] });
   } catch (e) { next(e); }
 }

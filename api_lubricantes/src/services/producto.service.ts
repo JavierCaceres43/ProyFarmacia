@@ -124,6 +124,19 @@ export async function actualizarProducto(id: number, body: Record<string, unknow
   return obtenerProductoPorId(id);
 }
 
+export async function actualizarAvatar(id: number, avatar: string) {
+  const db = await getPool();
+  const prev = await db.request()
+    .input("id", sql.Int, id)
+    .query(`SELECT avatar FROM dbo.producto WHERE id_producto = @id;`);
+  if (prev.recordset.length === 0) return null;
+  await db.request()
+    .input("id2", sql.Int, id)
+    .input("avatar", sql.NVarChar(255), avatar)
+    .query(`UPDATE dbo.producto SET avatar = @avatar WHERE id_producto = @id2 AND estado = 1;`);
+  return { id, avatar, anterior: prev.recordset[0].avatar as string | null };
+}
+
 export async function desactivarProducto(id: number) {
   const db = await getPool();
   const result = await db.request()

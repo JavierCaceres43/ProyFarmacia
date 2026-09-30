@@ -52,11 +52,12 @@ export async function resumenVentas(dni?: string) {
   const request = db.request();
   if (dni) request.input("dni", sql.NVarChar(20), dni);
   const result = await request.query(`
+    DECLARE @ahora DATETIME2 = DATEADD(HOUR, -4, SYSUTCDATETIME());
     SELECT
-      ISNULL((SELECT SUM(total) FROM dbo.venta WHERE estado = 1 AND CAST(fecha AS DATE) = CAST(GETDATE() AS DATE)), 0) AS total_dia,
-      ISNULL((SELECT SUM(total) FROM dbo.venta WHERE estado = 1 AND CAST(fecha AS DATE) = CAST(GETDATE() AS DATE) ${dni ? "AND usuario_dni = @dni" : ""}), 0) AS dia_vendedor,
-      ISNULL((SELECT SUM(total) FROM dbo.venta WHERE estado = 1 AND YEAR(fecha) = YEAR(GETDATE()) AND MONTH(fecha) = MONTH(GETDATE())), 0) AS mensual,
-      ISNULL((SELECT SUM(total) FROM dbo.venta WHERE estado = 1 AND YEAR(fecha) = YEAR(GETDATE())), 0) AS anual;
+      ISNULL((SELECT SUM(total) FROM dbo.venta WHERE estado = 1 AND CAST(fecha AS DATE) = CAST(@ahora AS DATE)), 0) AS total_dia,
+      ISNULL((SELECT SUM(total) FROM dbo.venta WHERE estado = 1 AND CAST(fecha AS DATE) = CAST(@ahora AS DATE) ${dni ? "AND usuario_dni = @dni" : ""}), 0) AS dia_vendedor,
+      ISNULL((SELECT SUM(total) FROM dbo.venta WHERE estado = 1 AND YEAR(fecha) = YEAR(@ahora) AND MONTH(fecha) = MONTH(@ahora)), 0) AS mensual,
+      ISNULL((SELECT SUM(total) FROM dbo.venta WHERE estado = 1 AND YEAR(fecha) = YEAR(@ahora)), 0) AS anual;
   `);
   return result.recordset[0];
 }
@@ -89,7 +90,7 @@ export async function crearVenta(body: Record<string, unknown>) {
       .query(`
         INSERT INTO dbo.venta (fecha, cliente, dni_cliente, total, usuario_dni, estado)
         OUTPUT INSERTED.codigo
-        VALUES (SYSDATETIME(), @cliente, @dni_cliente, 0, @usuario_dni, 1);
+        VALUES (DATEADD(HOUR, -4, SYSUTCDATETIME()), @cliente, @dni_cliente, 0, @usuario_dni, 1);
       `);
     const codigo: number = ins.recordset[0].codigo;
     let total = 0;

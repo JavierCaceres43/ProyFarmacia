@@ -131,14 +131,21 @@ export async function cambiarTipo(dni: string, sentido: string) {
   return obtenerUsuarioPorDni(dni);
 }
 
-export async function eliminarUsuario(dni: string) {
-  if (await esUnicoRoot(dni))
-    fail("No se puede eliminar al único Root del sistema.", 400);
+export async function actualizarAvatar(dni: string, avatar: string) {
   const db = await getPool();
-  const result = await db.request()
+  const prev = await db.request()
     .input("dni", sql.NVarChar(20), dni)
-    .query(`UPDATE dbo.usuario SET estado = 0 WHERE dni = @dni AND estado = 1;`);
-  return result.rowsAffected[0] > 0;
+    .query(`SELECT avatar FROM dbo.usuario WHERE dni = @dni;`);
+  if (prev.recordset.length === 0) return null;
+  await db.request()
+    .input("dni2", sql.NVarChar(20), dni)
+    .input("avatar", sql.NVarChar(255), avatar)
+    .query(`UPDATE dbo.usuario SET avatar = @avatar WHERE dni = @dni2 AND estado = 1;`);
+  return { dni, avatar, anterior: prev.recordset[0].avatar as string | null };
+}
+
+export async function eliminarUsuario(_dni: string) {
+  fail("La eliminación de usuarios está deshabilitada.", 403);
 }
 
 export async function login(nombre: string, password: string) {
