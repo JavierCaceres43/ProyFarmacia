@@ -63,7 +63,9 @@ export function avatarsDir() {
 
 export async function eliminar(req: Request, res: Response, next: NextFunction) {
   try {
-    await service.eliminarUsuario(String(req.params.dni));
+    const solicitadoPor = (req.body as any)?.solicitado_por ?? req.query.solicitado_por;
+    const ok = await service.eliminarUsuario(String(req.params.dni), solicitadoPor);
+    if (!ok) return res.status(404).json({ ok: false, message: "Usuario no encontrado", data: null, errors: [] });
     res.json({ ok: true, message: "Usuario eliminado correctamente", data: null, errors: [] });
   } catch (e) { next(e); }
 }

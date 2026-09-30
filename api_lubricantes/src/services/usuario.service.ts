@@ -144,8 +144,19 @@ export async function actualizarAvatar(dni: string, avatar: string) {
   return { dni, avatar, anterior: prev.recordset[0].avatar as string | null };
 }
 
-export async function eliminarUsuario(_dni: string) {
-  fail("La eliminación de usuarios está deshabilitada.", 403);
+export async function eliminarUsuario(dni: string, solicitadoPor?: unknown) {
+  const db = await getPool();
+  const sol = await db.request()
+    .input("s", sql.NVarChar(20), solicitadoPor ? String(solicitadoPor) : "")
+    .query(`SELECT tipo_usuario FROM dbo.usuario WHERE dni = @s AND estado = 1;`);
+  if (sol.recordset.length === 0 || sol.recordset[0].tipo_usuario !== "Root")
+    fail("Solo el usuario Root puede eliminar usuarios.", 403);
+  if (await esUnicoRoot(dni))
+    fail("No se puede eliminar al único Root del sistema.", 400);
+  const result = await db.request()
+    .input("dni", sql.NVarChar(20), dni)
+    .query(`UPDATE dbo.usuario SET estado = 0 WHERE dni = @dni AND estado = 1;`);
+  return result.rowsAffected[0] > 0;
 }
 
 export async function login(nombre: string, password: string) {
