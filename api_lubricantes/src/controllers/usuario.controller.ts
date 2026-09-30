@@ -36,7 +36,8 @@ export async function actualizar(req: Request, res: Response, next: NextFunction
 
 export async function cambiarTipo(req: Request, res: Response, next: NextFunction) {
   try {
-    const data = await service.cambiarTipo(String(req.params.dni), String(req.body.sentido ?? ""));
+    const solicitadoPor = (req.body as any)?.solicitado_por ?? req.query.solicitado_por;
+    const data = await service.cambiarTipo(String(req.params.dni), String(req.body.sentido ?? ""), solicitadoPor);
     if (!data) return res.status(404).json({ ok: false, message: "Usuario no encontrado", data: null, errors: [] });
     res.json({ ok: true, message: "Tipo de usuario actualizado correctamente", data, errors: [] });
   } catch (e) { next(e); }

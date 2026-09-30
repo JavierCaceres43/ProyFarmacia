@@ -112,9 +112,17 @@ async function esUnicoRoot(dni: string) {
   return uno.recordset.length > 0 && uno.recordset[0].tipo_usuario === "Root";
 }
 
-export async function cambiarTipo(dni: string, sentido: string) {
+export async function cambiarTipo(dni: string, sentido: string, solicitadoPor?: unknown) {
   const actual = await obtenerUsuarioPorDni(dni);
   if (!actual) return null;
+  if (actual.tipo_usuario === "Administrador" && sentido === "down") {
+    const db = await getPool();
+    const sol = await db.request()
+      .input("s", sql.NVarChar(20), solicitadoPor ? String(solicitadoPor) : "")
+      .query(`SELECT tipo_usuario FROM dbo.usuario WHERE dni = @s AND estado = 1;`);
+    if (sol.recordset.length === 0 || sol.recordset[0].tipo_usuario !== "Root")
+      fail("Solo el usuario Root puede descender administradores.", 403);
+  }
   let idx = ORDEN_TIPO.indexOf(actual.tipo_usuario);
   if (sentido === "up" && idx < ORDEN_TIPO.length - 1) idx++;
   else if (sentido === "down" && idx > 0) idx--;
